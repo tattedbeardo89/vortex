@@ -24,7 +24,8 @@ def integrate(repo, base='origin/main', upstream='upstream/main'):
         if attempt.returncode:
             result.update(state='conflict', conflicts=git(repo,'diff','--name-only','--diff-filter=U').stdout.splitlines(), detail=attempt.stdout[-5000:])
             # No side is chosen, and no partially merged file is committed.
-            git(repo,'merge','--abort')
+            if git(repo,'rev-parse','--verify','MERGE_HEAD',check=False).returncode == 0:
+                git(repo,'merge','--abort')
             return result
     protected=['custom/vortex','package.json','packaging/build.sh','.github/workflows','docs','ASSET_REPLACEMENT_GUIDE.md']
     changed=git(repo,'diff','--name-only',base,'HEAD','--',*protected).stdout.splitlines()
@@ -77,6 +78,8 @@ def main():
     if git(repo,'diff','--cached','--quiet',check=False).returncode:
         git(repo,'commit','-m','chore: report upstream integration '+result['tip'][:12])
     git(repo,'push','origin','HEAD:refs/heads/'+BRANCH)  # normal fast-forward push only
+    if os.environ.get('GITHUB_OUTPUT'):
+        with open(os.environ['GITHUB_OUTPUT'],'a') as output: output.write('branch='+BRANCH+'\n')
     existing=json.loads(gh(repo,'pr','list','--repo',brand['repository'],'--state','open','--head',BRANCH,'--base','main','--json','number').stdout)
     pr_body=repo/'.vortex/sync-pr.md';pr_body.parent.mkdir(exist_ok=True)
     pr_body.write_text('Integrates upstream Overdrive improvements while retaining the Vortex overlay.\n\nStatus: **'+result['state']+'**. Review `.github/upstream-sync/status.md` for conflicts, customized-file changes and validation results.\n\nResolve all failing checks and confirm Vortex identity before merging. This PR does not publish a release.\n')

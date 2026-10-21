@@ -20,6 +20,16 @@ class OverlayContracts(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError,'customized files changed'):
                     overlay.verify_contracts()
 
+    def test_new_upstream_branding_is_flagged_but_provider_name_is_preserved(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            stage=Path(tmp);(stage/'ui').mkdir()
+            source=stage/'ui/New.jsx'
+            source.write_text('const label = "Overdrive CDN";')
+            overlay.audit_generated(stage)
+            source.write_text('const label = "Overdrive";')
+            with self.assertRaisesRegex(ValueError,'Unreviewed application branding'):
+                overlay.audit_generated(stage)
+
     def test_identity_schema_and_upstream_are_distinct(self):
         brand=overlay.configuration()
         self.assertNotEqual(brand['titleId'],'PPSA99058')

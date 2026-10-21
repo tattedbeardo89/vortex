@@ -1,15 +1,58 @@
 #!/usr/bin/env python3
 """Vortex entrypoint; all native compilation remains in the upstream framework."""
 import argparse
+import fcntl
 import json
 import os
 from pathlib import Path
 import subprocess
+import signal
+import time
 import sys
 from overlay import ROOT, OUTPUT, configuration, prepare
 
 def run(argv, cwd=ROOT):
     subprocess.run([str(a) for a in argv], cwd=cwd, check=True)
+
+def input_stamp():
+    entries = []
+    for root in (ROOT / 'app', ROOT / 'custom/vortex'):
+        for path in root.rglob('*'):
+            if path.is_file() and '__pycache__' not in path.parts:
+                try:
+                    stat = path.stat()
+                    entries.append((str(path), stat.st_mtime_ns, stat.st_size))
+                except FileNotFoundError:
+                    pass  # Editors can replace a file between traversal and stat.
+    return tuple(sorted(entries))
+
+def watch_overlay(command):
+    # Upstream watches the staged app/runtime; this parent refreshes staging when source/custom inputs change.
+    process = subprocess.Popen([str(a) for a in command], cwd=ROOT / 'ps5-react', start_new_session=True)
+    stamp = input_stamp()
+    try:
+        while process.poll() is None:
+            time.sleep(0.3)
+            changed = input_stamp()
+            if changed == stamp: continue
+            time.sleep(0.25)
+            stamp = input_stamp()
+            try:
+                lock_path = ROOT / 'ps5-react/.build/build.lock'
+                lock_path.parent.mkdir(exist_ok=True)
+                with lock_path.open('w') as lock:
+                    fcntl.flock(lock, fcntl.LOCK_EX)
+                    prepare()
+                print('Vortex overlay refreshed; preview watcher will rebuild.', flush=True)
+            except (ValueError, subprocess.CalledProcessError) as error:
+                print(f'Overlay rejected input changes: {error}. Review source contracts and save to retry.', flush=True)
+        if process.returncode: raise subprocess.CalledProcessError(process.returncode, command)
+    finally:
+        if process.poll() is None:
+            os.killpg(process.pid, signal.SIGINT)
+            try: process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                os.killpg(process.pid, signal.SIGTERM); process.wait(timeout=5)
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -21,8 +64,10 @@ def main():
     if args.command == 'prepare': return
     if args.command in ('preview', 'dev'):
         os.environ.setdefault('CC', 'clang'); os.environ.setdefault('CXX', 'clang++')
-        run([sys.executable, 'tools/cli.py', 'preview', '--app-dir', app,
-             *(['--watch'] if args.command == 'dev' else [])], ROOT / 'ps5-react')
+        command = [sys.executable, 'tools/cli.py', 'preview', '--app-dir', app,
+                   *(['--watch'] if args.command == 'dev' else [])]
+        if args.command == 'dev': watch_overlay(command)
+        else: run(command, ROOT / 'ps5-react')
         return
     candidates = [Path(os.environ['LLVM'])] if os.environ.get('LLVM') else [
         Path('/usr/lib/llvm-18/bin'), Path('/opt/homebrew/opt/llvm@18/bin'), Path('/usr/local/opt/llvm@18/bin')]
@@ -39,4 +84,7 @@ def main():
     run([sys.executable, ROOT / 'custom/vortex/package_update.py'])
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print('Vortex preview stopped.')

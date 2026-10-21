@@ -40,6 +40,21 @@ def verify_contracts():
 def tree(path):
     return {str(p.relative_to(path)): digest(p) for p in path.rglob('*') if p.is_file()}
 
+def audit_generated(stage):
+    for path in stage.rglob('*'):
+        if path.suffix not in ('.js', '.jsx') or 'data' in path.relative_to(stage).parts or '.test.' in path.name:
+            continue
+        for line in path.read_text().splitlines():
+            if line.lstrip().startswith('//'):
+                continue
+            if re.search(r'\bOverdrive\b(?! CDN)', line):
+                raise ValueError(f'Unreviewed application branding in {path.relative_to(stage)}')
+    for path in (stage / 'state').glob('*.js'):
+        if 'PPSA99058' in path.read_text():
+            raise ValueError(f'Unreviewed upstream title identity: {path.name}')
+        if path.name in ('update.js', 'updater.js', 'vortex-update-policy.js') and 'MyLuxy/overdrive' in path.read_text():
+            raise ValueError(f'Upstream self-update source leaked into Vortex: {path.name}')
+
 def prepare():
     brand = configuration()
     contracts = verify_contracts()
@@ -48,8 +63,8 @@ def prepare():
         stage = Path(tmp) / 'vortex'
         shutil.copytree(ROOT / 'app', stage)
         for patch in sorted((CUSTOM / 'patches').glob('*.patch')):
-            subprocess.run(['git', 'apply', '--check', '--unsafe-paths', str(patch)], cwd=stage, check=True)
-            subprocess.run(['git', 'apply', '--unsafe-paths', str(patch)], cwd=stage, check=True)
+            subprocess.run(['git', 'apply', '--check', str(patch)], cwd=stage, check=True)
+            subprocess.run(['git', 'apply', str(patch)], cwd=stage, check=True)
         for original in contracts:
             path = stage / Path(original).relative_to('app')
             if original in ('app/state/update.js', 'app/state/updater.js'):
@@ -91,10 +106,7 @@ def prepare():
                   'version': brand['version'], 'upstreamVersion': re.search(r'"([0-9.]+)"', upstream_version)[1],
                   'customizedSources': contracts}
         (stage / '.vortex-generated.json').write_text(json.dumps(report, indent=2) + '\n')
-        # Detect new hardcoded title paths added upstream outside reviewed transforms.
-        for path in (stage / 'state').glob('*.js'):
-            if 'PPSA99058' in path.read_text():
-                raise ValueError(f'Unreviewed upstream title identity: {path.name}')
+        audit_generated(stage)
         if OUTPUT.exists():
             if not (OUTPUT / '.vortex-generated.json').is_file():
                 raise ValueError(f'Refusing to overwrite unowned directory {OUTPUT}')

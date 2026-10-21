@@ -34,6 +34,9 @@ def main():
     assert tree(OUTPUT) == before, 'Overlay must be idempotent'
     config = json.loads((OUTPUT / 'app.json').read_text())
     for key in ('name', 'titleId', 'contentId'): assert config[key] == brand[key]
+    workflow = (ROOT / '.github/workflows/build.yml').read_text()
+    assert brand['artifact'] in workflow and brand['titleId'] + '.receipt.json' in workflow
+    assert 'Overdrive.exfat' not in workflow
     assert brand['version'] in (OUTPUT / 'version.js').read_text()
     assert 'FEED_OVERRIDES' not in (OUTPUT / 'state/update.js').read_text()
     assert brand['titleId'] in (OUTPUT / 'state/downloads.js').read_text()
