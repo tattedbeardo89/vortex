@@ -85,7 +85,9 @@ def main():
     pr_body=repo/'.vortex/sync-pr.md';pr_body.parent.mkdir(exist_ok=True)
     pr_body.write_text('Integrates upstream Overdrive improvements while retaining the Vortex overlay.\n\nStatus: **'+result['state']+'**. Review `.github/upstream-sync/status.md` for conflicts, customized-file changes and validation results.\n\nResolve all failing checks and confirm Vortex identity before merging. This PR does not publish a release.\n')
     if existing:
-        gh(repo,'pr','edit',str(existing[0]['number']),'--repo',brand['repository'],'--body-file',str(pr_body))
+        patch_body=repo/'.vortex/sync-pr-update.json'
+        patch_body.write_text(json.dumps({'body':pr_body.read_text()}))
+        gh(repo,'api','--method','PATCH',f"repos/{brand['repository']}/pulls/{existing[0]['number']}",'--input',str(patch_body))
     else:
         gh(repo,'pr','create','--repo',brand['repository'],'--base','main','--head',BRANCH,
            '--draft','--title','Integrate upstream Overdrive updates','--body-file',str(pr_body))
