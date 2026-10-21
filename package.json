@@ -8,11 +8,13 @@
     "build:app": "bash packaging/build.sh --no-package",
     "preview": "python3 custom/vortex/run.py preview",
     "dev": "python3 custom/vortex/run.py dev",
-    "test": "npm run test:vortex && npm run test:app && npm run test:framework",
+    "test": "npm run test:vortex && npm run test:catalog && npm run test:app && npm run test:framework",
     "prepare:vortex": "python3 custom/vortex/overlay.py",
     "test:vortex": "python3 custom/vortex/validate.py && python3 -m unittest discover -s custom/vortex/tests -p \"test_*.py\" && node --test custom/vortex/tests/*.test.mjs",
     "test:app": "node --test app/state/*.test.mjs",
-    "test:framework": "cd ps5-react && CC=clang CXX=clang++ npm test"
+    "test:framework": "cd ps5-react && CC=clang CXX=clang++ npm test",
+    "diagnose:catalog": "python3 tools/catalog-diagnostics/compare.py",
+    "test:catalog": "python3 -m unittest discover -s tools/catalog-diagnostics -p \"test_*.py\""
   },
   "repository": {
     "type": "git",

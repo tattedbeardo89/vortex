@@ -42,13 +42,19 @@ jobs:
           python-version: '3.12'
       - run: npm ci --ignore-scripts --prefix ps5-react
       - run: npm run test:vortex
+      - name: Fetch pinned upstream catalog comparison snapshot
+        run: git fetch --no-tags https://github.com/MyLuxy/overdrive.git c7e962db9a971a407f61d70473fade417de735ec
+      - run: npm run test:catalog
+      - run: npm run diagnose:catalog
       - run: npm run test:app
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: Vortex-validation
           include-hidden-files: true
-          path: .vortex/validation.json
+          path: |
+            .vortex/validation.json
+            .vortex/catalog-comparison.json
   native-build:
     runs-on: ubuntu-24.04
     steps:
