@@ -1,0 +1,330 @@
+{
+  "base": "7853000e5e10f19f8e05857529991c740c42ed08",
+  "trackedFiles": 6513,
+  "brandingAndIdentityFiles": [
+    {
+      "path": ".github/ISSUE_TEMPLATE/bug_report.yml",
+      "matches": 10
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/config.yml",
+      "matches": 4
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/feature_request.yml",
+      "matches": 2
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/game_report.yml",
+      "matches": 3
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/game_request.yml",
+      "matches": 3
+    },
+    {
+      "path": ".github/readme/install-steps.ru.svg",
+      "matches": 1
+    },
+    {
+      "path": ".github/readme/install-steps.svg",
+      "matches": 1
+    },
+    {
+      "path": ".github/readme/logo-dark.svg",
+      "matches": 1
+    },
+    {
+      "path": ".github/readme/logo-light.svg",
+      "matches": 1
+    },
+    {
+      "path": ".github/readme/sponsor.ru.svg",
+      "matches": 1
+    },
+    {
+      "path": ".github/readme/sponsor.svg",
+      "matches": 1
+    },
+    {
+      "path": ".github/workflows/build.yml",
+      "matches": 10
+    },
+    {
+      "path": ".gitignore",
+      "matches": 1
+    },
+    {
+      "path": "README.md",
+      "matches": 46
+    },
+    {
+      "path": "README.ru.md",
+      "matches": 44
+    },
+    {
+      "path": "app/app.json",
+      "matches": 4
+    },
+    {
+      "path": "app/browse/BrowsePage.jsx",
+      "matches": 1
+    },
+    {
+      "path": "app/browse/CdnRail.jsx",
+      "matches": 2
+    },
+    {
+      "path": "app/browse/FilterDrawer.jsx",
+      "matches": 1
+    },
+    {
+      "path": "app/data/catalog.js",
+      "matches": 26
+    },
+    {
+      "path": "app/data/pages/CUSA02180.json",
+      "matches": 2
+    },
+    {
+      "path": "app/data/pages/PPSA02817.json",
+      "matches": 1
+    },
+    {
+      "path": "app/downloads/DownloadRow.jsx",
+      "matches": 2
+    },
+    {
+      "path": "app/game/DownloadButton.jsx",
+      "matches": 2
+    },
+    {
+      "path": "app/game/SourcePicker.jsx",
+      "matches": 2
+    },
+    {
+      "path": "app/game/sources.js",
+      "matches": 5
+    },
+    {
+      "path": "app/i18n/locales/ar.json",
+      "matches": 14
+    },
+    {
+      "path": "app/i18n/locales/bn.json",
+      "matches": 14
+    },
+    {
+      "path": "app/i18n/locales/de.json",
+      "matches": 14
+    },
+    {
+      "path": "app/i18n/locales/en.json",
+      "matches": 17
+    },
+    {
+      "path": "app/i18n/locales/es.json",
+      "matches": 14
+    },
+    {
+      "path": "app/i18n/locales/fa.json",
+      "matches": 17
+    },
+    {
+      "path": "app/i18n/locales/fr.json",
+      "matches": 14
+    },
+    {
+      "path": "app/i18n/locales/hi.json",
+      "matches": 14
+    },
+    {
+      "path": "app/i18n/locales/id.json",
+      "matches": 14
+    },
+    {
+      "path": "app/i18n/locales/it.json",
+      "matches": 17
+    },
+    {
+      "path": "app/i18n/locales/ja.json",
+      "matches": 14
+    },
+    {
+      "path": "app/i18n/locales/nl.json",
+      "matches": 17
+    },
+    {
+      "path": "app/i18n/locales/pt-BR.json",
+      "matches": 16
+    },
+    {
+      "path": "app/i18n/locales/pt-PT.json",
+      "matches": 17
+    },
+    {
+      "path": "app/i18n/locales/ru.json",
+      "matches": 17
+    },
+    {
+      "path": "app/i18n/locales/ur.json",
+      "matches": 14
+    },
+    {
+      "path": "app/i18n/locales/zh-Hans.json",
+      "matches": 14
+    },
+    {
+      "path": "app/i18n/locales/zh-Hant.json",
+      "matches": 17
+    },
+    {
+      "path": "app/index.jsx",
+      "matches": 2
+    },
+    {
+      "path": "app/state/catalog-update.js",
+      "matches": 3
+    },
+    {
+      "path": "app/state/catalog.js",
+      "matches": 4
+    },
+    {
+      "path": "app/state/download-queue.js",
+      "matches": 7
+    },
+    {
+      "path": "app/state/downloads.js",
+      "matches": 2
+    },
+    {
+      "path": "app/state/homebrew.js",
+      "matches": 3
+    },
+    {
+      "path": "app/state/install-location.js",
+      "matches": 11
+    },
+    {
+      "path": "app/state/mock-download-queue.js",
+      "matches": 1
+    },
+    {
+      "path": "app/state/saved.js",
+      "matches": 3
+    },
+    {
+      "path": "app/state/update.js",
+      "matches": 8
+    },
+    {
+      "path": "app/state/updater.js",
+      "matches": 2
+    },
+    {
+      "path": "app/ui/Logo.jsx",
+      "matches": 1
+    },
+    {
+      "path": "package.json",
+      "matches": 4
+    },
+    {
+      "path": "packaging/build.sh",
+      "matches": 9
+    },
+    {
+      "path": "packaging/make-exfat.sh",
+      "matches": 2
+    },
+    {
+      "path": "packaging/setup.sh",
+      "matches": 2
+    },
+    {
+      "path": "ps5-react/CHANGELOG.md",
+      "matches": 11
+    },
+    {
+      "path": "ps5-react/README.md",
+      "matches": 2
+    },
+    {
+      "path": "ps5-react/apps/starter/index.jsx",
+      "matches": 1
+    },
+    {
+      "path": "ps5-react/apps/text-lab/index.jsx",
+      "matches": 7
+    },
+    {
+      "path": "ps5-react/dependencies.lock.json",
+      "matches": 1
+    },
+    {
+      "path": "ps5-react/docs/ANIMATION.md",
+      "matches": 1
+    },
+    {
+      "path": "ps5-react/docs/DEPENDENCIES.md",
+      "matches": 6
+    },
+    {
+      "path": "ps5-react/docs/HARDWARE.md",
+      "matches": 3
+    },
+    {
+      "path": "ps5-react/docs/IMAGES.md",
+      "matches": 1
+    },
+    {
+      "path": "ps5-react/docs/STORAGE.md",
+      "matches": 1
+    },
+    {
+      "path": "ps5-react/native/ps5/CMakeLists.txt",
+      "matches": 2
+    },
+    {
+      "path": "ps5-react/tools/build_ps5.py",
+      "matches": 2
+    },
+    {
+      "path": "ps5-react/tools/ps5_shots.py",
+      "matches": 1
+    },
+    {
+      "path": "ps5-react/tools/test_filesystem_access.py",
+      "matches": 1
+    },
+    {
+      "path": "ps5-react/tools/test_filesystem_roots.cpp",
+      "matches": 52
+    },
+    {
+      "path": "ps5-react/tools/test_text.py",
+      "matches": 13
+    },
+    {
+      "path": "tools/enrich-catalog.py",
+      "matches": 1
+    },
+    {
+      "path": "tools/import-pegasus.py",
+      "matches": 2
+    },
+    {
+      "path": "tools/import-pippo.py",
+      "matches": 3
+    },
+    {
+      "path": "tools/import-superpsx.py",
+      "matches": 2
+    },
+    {
+      "path": "tools/vr-games.py",
+      "matches": 1
+    }
+  ]
+}
