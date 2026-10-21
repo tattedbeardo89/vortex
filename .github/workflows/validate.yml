@@ -7,12 +7,20 @@ on:
         description: Optional branch to validate
         type: string
         default: ''
+      package_image:
+        description: Also build Vortex.exfat and update.zip on the hosted Linux runner
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       target_ref:
         type: string
         required: false
         default: ''
+      package_image:
+        type: boolean
+        required: false
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -39,6 +47,7 @@ jobs:
         if: always()
         with:
           name: Vortex-validation
+          include-hidden-files: true
           path: .vortex/validation.json
   native-build:
     runs-on: ubuntu-24.04
@@ -56,21 +65,30 @@ jobs:
       - name: Install PS5 build prerequisites
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-18 lld-18 llvm-18 llvm-18-dev cmake ninja-build nasm pkg-config zlib1g-dev zstd
+          sudo apt-get install -y clang-18 lld-18 llvm-18 llvm-18-dev cmake ninja-build nasm pkg-config zlib1g-dev zstd exfatprogs exfat-fuse zip
           python3 -m pip install -r ps5-react/requirements.txt
           npm ci --ignore-scripts --prefix ps5-react
       - uses: actions/cache@v4
         with:
           path: ps5-react/.deps
           key: vortex-native-${{ hashFiles('ps5-react/dependencies.lock.json') }}
-      - run: npm run build:app
+      - name: Build native app
+        if: ${{ !inputs.package_image }}
+        run: npm run build:app
+      - name: Build and verify Vortex image/update package
+        if: inputs.package_image
+        run: npm run build
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: Vortex-native-validation
+          include-hidden-files: true
           path: |
             .vortex/validation.json
             ps5-react/dist/*.receipt.json
+            Vortex.exfat
+            update.zip
+            vortex-update.json
   framework-tests:
     runs-on: ubuntu-24.04
     steps:
@@ -93,6 +111,6 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: ps5-react/.deps
-          key: vortex-native-${{ hashFiles('ps5-react/dependencies.lock.json') }}
+          key: vortex-desktop-${{ hashFiles('ps5-react/dependencies.lock.json') }}
       - name: Run original framework suite without suppressing inherited failures
         run: xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:framework

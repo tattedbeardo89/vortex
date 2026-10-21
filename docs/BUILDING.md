@@ -13,6 +13,8 @@ The existing framework compiles `.vortex/vortex`, not app/. Outputs: ps5-react/d
 
 `npm run build` then calls the original make-exfat.sh with Vortex's title folder, Vortex.exfat and label VORTEX. package_update.py creates update.zip containing exactly Vortex.exfat plus vortex-update.json. The identity manifest includes Vortex repository, title/content IDs, semantic version and image size. package_update.py --verify checks manifest identity, exact ZIP contents, exFAT header, size and CRC. It is not a Sony signature or a runtime console test. Updater ZIP digest validation remains mandatory.
 
+If the build workflow is not registered on the default branch yet, manually dispatch Vortex validation for the implementation branch with package_image=true to produce the same image/update artifacts without any release job.
+
 The manual build workflow uploads artifacts, validation.json, receipt and a Vortex-source.tar snapshot. Optional draft creation is a separate job; there is no automatic publication. See RELEASING.md for additional corresponding-source and rights requirements before publication.
 
 ## Prepared cloud machine
