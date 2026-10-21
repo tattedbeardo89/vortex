@@ -79,7 +79,8 @@ def main():
         git(repo,'commit','-m','chore: report upstream integration '+result['tip'][:12])
     git(repo,'push','origin','HEAD:refs/heads/'+BRANCH)  # normal fast-forward push only
     if os.environ.get('GITHUB_OUTPUT'):
-        with open(os.environ['GITHUB_OUTPUT'],'a') as output: output.write('branch='+BRANCH+'\n')
+        with open(os.environ['GITHUB_OUTPUT'],'a') as output:
+            output.write('branch='+BRANCH+'\nsha='+git(repo,'rev-parse','HEAD').stdout.strip()+'\n')
     existing=json.loads(gh(repo,'pr','list','--repo',brand['repository'],'--state','open','--head',BRANCH,'--base','main','--json','number').stdout)
     pr_body=repo/'.vortex/sync-pr.md';pr_body.parent.mkdir(exist_ok=True)
     pr_body.write_text('Integrates upstream Overdrive improvements while retaining the Vortex overlay.\n\nStatus: **'+result['state']+'**. Review `.github/upstream-sync/status.md` for conflicts, customized-file changes and validation results.\n\nResolve all failing checks and confirm Vortex identity before merging. This PR does not publish a release.\n')

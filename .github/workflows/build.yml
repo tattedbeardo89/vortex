@@ -66,7 +66,6 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: Vortex
-          include-hidden-files: true
           path: .vortex/release
       - name: Create a reviewable draft, never publish
         env:
