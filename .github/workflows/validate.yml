@@ -1,0 +1,58 @@
+name: Vortex validation
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: vortex-validation-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  identity-and-tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci --ignore-scripts --prefix ps5-react
+      - run: npm run test:vortex
+      - run: npm run test:app
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Vortex-validation
+          path: .vortex/validation.json
+  native-build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install PS5 build prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-18 lld-18 llvm-18 llvm-18-dev cmake ninja-build nasm pkg-config zlib1g-dev zstd
+          python3 -m pip install -r ps5-react/requirements.txt
+          npm ci --ignore-scripts --prefix ps5-react
+      - uses: actions/cache@v4
+        with:
+          path: ps5-react/.deps
+          key: vortex-native-${{ hashFiles('ps5-react/dependencies.lock.json') }}
+      - run: npm run build:app
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Vortex-native-validation
+          path: |
+            .vortex/validation.json
+            ps5-react/dist/*.receipt.json

@@ -1,335 +1,45 @@
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset=".github/readme/logo-dark.svg">
-    <img src=".github/readme/logo-light.svg" alt="Overdrive" width="440">
-  </picture>
-</p>
+# Vortex
 
-<p align="center">
-  <b>English</b> ·
-  <a href="README.ru.md">Русский</a>
-</p>
+**Vortex - PS5 Homebrew and Game Store**
 
-<p align="center">
-  <b>Your PS5 game store.</b><br>
-  Back from the dead, rebuilt from its own binary, with every line of source in the open.
-</p>
+A personal, independently branded application based on [Overdrive by MyLuxy](https://github.com/MyLuxy/overdrive), built with [PS5 React](https://github.com/half144/ps5-react). Vortex retains catalog browsing, homebrew, search, favorites, downloads, storage tools, controller navigation and all 18 languages.
 
-<p align="center">
-  <a href="https://github.com/MyLuxy/overdrive/releases/latest"><img src="https://img.shields.io/github/v/release/MyLuxy/overdrive?style=for-the-badge&label=release&labelColor=0b0b0d&color=2a2a2f" alt="Latest release" width="197"></a>
-  <a href="https://github.com/MyLuxy/overdrive/releases"><img src="https://img.shields.io/github/downloads/MyLuxy/overdrive/total?style=for-the-badge&label=downloads&labelColor=0b0b0d&color=2a2a2f" alt="Downloads" width="183"></a>
-  <a href="https://github.com/sponsors/MyLuxy"><img src="https://img.shields.io/badge/sponsor-%E2%9D%A4-db61a2?style=for-the-badge&logo=githubsponsors&logoColor=white&labelColor=0b0b0d" alt="Sponsor MyLuxy on GitHub" width="180"></a>
-</p>
+Repository and releases: **https://github.com/tattedbeardo89/vortex**. The originally proposed vortex-ps5 repository was unavailable; the owner selected this existing repository instead.
 
-<p align="center">
-  <a href="#install-in-four-steps">Install</a> ·
-  <a href="#features">Features</a> ·
-  <a href="#updates">Updates</a> ·
-  <a href="#troubleshooting">Troubleshooting</a> ·
-  <a href="#build-it-yourself">Build it yourself</a>
-</p>
+## Install alongside Overdrive
 
-> [!NOTE]
-> The original Overdrive project has been shut down so I decompiled the last released build,
-> recovered the complete source and rebuilt it.
+Download **Vortex.exfat** from a Vortex release. Place it in `homebrew/Vortex.exfat` on an exFAT USB drive, or `/data/homebrew/Vortex.exfat` on the console. ShadowMount+ and the supported console prerequisites remain necessary; see the [original installation documentation](docs/UPSTREAM_README.md#install-in-four-steps).
 
-<p align="center">
-  <img src=".github/readme/discover.jpg" alt="Overdrive's Discover page, with a featured game and the Popular now row" width="100%">
-</p>
-<p align="center">
-  <img src=".github/readme/browse.jpg" alt="Browse library: 1,845 games with filters, sorting, scores and sizes" width="49.5%">
-  <img src=".github/readme/downloads.jpg" alt="Downloads page with activity and storage for internal storage and a USB drive" width="49.5%">
-</p>
+Vortex uses **PPSA99189**, content **UP9000-PPSA99189_00-VORTEXPS50000000**, and a separate data/queue path. Overdrive remains PPSA99058. Do not rename or overwrite Overdrive.exfat. The new ID is structurally valid and unused in this source tree, not a Sony-assigned or globally reserved ID. Actual console installation/launch and coexistence still need hardware validation. Existing home-screen raster artwork is temporarily retained; the running UI uses a Vortex text identity. See [artwork replacements](ASSET_REPLACEMENT_GUIDE.md).
 
-## Features
-
-- **1,800+ games** to discover, with **Top rated**, a hand-picked row and a featured spotlight
-- **Homebrew**: native PS5 apps and games from the community catalog at [prosperostore.net](https://prosperostore.net/), always up to date, installed from each developer's GitHub release
-- **Browse the whole library** with filters, sorting, scores and download sizes at a glance
-- **Downloads straight to the console**, to internal storage or any USB drive, with live speed and storage stats
-- **Favorites**, **search** with an on-screen keyboard, and a **Files** page to see and clean up what's on your drives
-- **18 languages**: English, Deutsch, Español, Français, Italiano, Nederlands, Português (Brasil), Português (Portugal), Русский, Bahasa Indonesia, 日本語, 简体中文, 繁體中文, العربية, فارسی, اردو, हिन्दी, বাংলা
-- **Updates itself**: a new version installs from the console, no PC needed
-- Made for the controller: <kbd>L1</kbd> <kbd>R1</kbd> to switch sections, <kbd>✕</kbd> to select, <kbd>○</kbd> to go back
-
-## Install in four steps
-
-<p align="center">
-  <img src=".github/readme/install-steps.svg" alt="1 Download Overdrive.exfat · 2 Copy it into a homebrew folder on a USB drive · 3 Plug it in: ShadowMount+ installs it · 4 Play" width="100%">
-</p>
-
-### Before you start
-
-You need a **jailbroken PS5** running two payloads: **[ShadowMount+](https://github.com/drakmor/ShadowMountPlus)**,
-which installs `.exfat` images by itself, and **[kstuff](https://github.com/EchoStretch/kstuff-lite/releases)**.
-If ShadowMount+ shows its notification when the console starts, you are ready. You also need a
-**USB drive** and a **PC**.
-
-<p align="center">
-  <a href="https://github.com/MyLuxy/overdrive/releases/latest/download/Overdrive.exfat"><img src="https://img.shields.io/badge/Download-Overdrive.exfat-f2f2f3?style=for-the-badge&labelColor=0b0b0d" alt="Download Overdrive.exfat" width="347"></a>
-</p>
-
-<table>
-<tr>
-<td width="64" align="center" valign="top"><img src=".github/readme/step-1.svg" alt="1" width="40"></td>
-<td>
-
-**Download `Overdrive.exfat`** with the button above, or from the
-[latest release](https://github.com/MyLuxy/overdrive/releases/latest). It is the only file you
-need. Leave it as it is: don't unzip it and don't change the `.exfat` at the end of its name.
-
-</td>
-</tr>
-<tr>
-<td align="center" valign="top"><img src=".github/readme/step-2.svg" alt="2" width="40"></td>
-<td>
-
-**Copy it onto a USB drive, inside a folder called `homebrew`.** Plug the drive into your PC,
-create a new folder named exactly `homebrew` (all lowercase) at the top level of the drive, and
-copy `Overdrive.exfat` into it:
-
-```text
-USB drive
-└── homebrew
-    └── Overdrive.exfat
-```
-
-The drive must be formatted as **exFAT**, which is how most drives come and what the PS5 reads.
-
-</td>
-</tr>
-<tr>
-<td align="center" valign="top"><img src=".github/readme/step-3.svg" alt="3" width="40"></td>
-<td>
-
-**Plug the drive into the PS5.** ShadowMount+ checks for new files every few seconds: it finds
-Overdrive, mounts it and installs it, and a notification tells you when it's done. There is
-nothing to click.
-
-</td>
-</tr>
-<tr>
-<td align="center" valign="top"><img src=".github/readme/step-4.svg" alt="4" width="40"></td>
-<td>
-
-<img src="app/sce_sys/icon0.png" alt="Overdrive's icon" width="64" align="right">
-
-**Open Overdrive from the home screen.** Look for this icon. Enjoy!
-
-</td>
-</tr>
-</table>
-
-You can also use **any FTP client** to move the file onto the console's internal storage
-instead, again inside a `homebrew` folder: `/data/homebrew/Overdrive.exfat`.
-
-## Updates
-
-You only install Overdrive by hand once. When a new version comes out, the app tells you by
-itself a few seconds after it opens:
-
-1. A window shows the new version and what changed. Press **Install**.
-2. Overdrive downloads the update, checks it and puts it in place of the old one.
-3. When it's done, the app **closes itself**. Open it again and you are on the new version.
-
-The update needs about **600 MB free** on the drive that holds Overdrive. `update.zip` in each
-release is the package the app downloads for this; you never need it yourself.
-
-## Support the project
-
-Overdrive is free and open source. If you enjoy it, sponsoring helps me keep it updated.
-
-<p align="center">
-  <a href="https://github.com/sponsors/MyLuxy"><img src=".github/readme/sponsor.svg" alt="Sponsor Overdrive on GitHub Sponsors" width="358"></a>
-</p>
-
-## Troubleshooting
-
-<details>
-<summary><b>Overdrive doesn't appear on the home screen</b></summary>
-<br>
-
-- Make sure **ShadowMount+ is running**: it shows a notification when it starts.
-- Check the folder: it must be called exactly `homebrew` and sit at the **top level** of the
-  drive, not inside another folder.
-- Check the file still ends in **`.exfat`**. Some PCs hide extensions: a file renamed to
-  `Overdrive.exfat.zip` or unzipped into a folder won't be found.
-- Give it a minute: ShadowMount+ waits until the file has finished copying before it installs it.
-
-</details>
-
-<details>
-<summary><b>After an update, the app still shows the old version</b></summary>
-<br>
-
-The new version is installed but the console still has the old one loaded. **Restart the
-console** and open Overdrive again; the app tells you this itself if it happens twice in a row.
-
-</details>
-
-<details>
-<summary><b>The update says there isn't enough space</b></summary>
-<br>
-
-The update is downloaded next to the installed app, so the drive holding Overdrive needs about
-600 MB free. Free some space on that drive and press **Retry**. Nothing has been changed yet
-when this happens.
-
-</details>
-
-<details>
-<summary><b>The update says it couldn't replace the app</b></summary>
-<br>
-
-Install it by hand: download `Overdrive.exfat` from the
-[latest release](https://github.com/MyLuxy/overdrive/releases/latest), close Overdrive, and copy
-the new file over the old one in the `homebrew` folder.
-
-</details>
-
-<details>
-<summary><b>How do I remove Overdrive?</b></summary>
-<br>
-
-Delete `Overdrive.exfat` from the `homebrew` folder first, then delete its icon from the home
-screen. In the other order ShadowMount+ finds the file again and puts the icon back.
-
-</details>
-
-## Build it yourself
-
-<details>
-<summary><b>What's in this repository</b></summary>
-<br>
-
-| Path | What it is |
-| --- | --- |
-| `app/` | The application: JSX sources, state, assets, catalog data, and `app.json` (title id `PPSA99058`, version, capabilities) |
-| `ps5-react/` | The framework it runs on, vendored from [half144/ps5-react](https://github.com/half144/ps5-react) |
-| `packaging/make-exfat.sh` | Builds the exFAT image ShadowMount+ installs |
-| `.github/workflows/build.yml` | The build |
-
-</details>
-
-<details>
-<summary><b>How the source was recovered</b></summary>
-<br>
-
-Overdrive is a React app running on [ps5-react](https://github.com/half144/ps5-react), and its
-whole JavaScript bundle sits in plain text inside `eboot.bin`. A bundler merges every module into
-one scope, so imports between modules turn into bare names; since each top-level name stays
-unique, the module that declares a name can be worked out again. That split the bundle back into
-its 137 original modules with their real `import`/`export` lines, checked against the original
-bundle until every import edge matched.
-
-What a bundler throws away could not come back: most comments, the JSX syntax (it reads as
-`jsx(View, {…})` calls), and `const`/`let` (now `var`). None of that changes how the app behaves.
-
-</details>
-
-<details>
-<summary><b>Developing</b></summary>
-<br>
-
-Everything runs from the repository root through npm. Once after cloning, `npm run setup`
-(`packaging/setup.sh`) installs every dependency: on Linux the apt packages for the desktop preview,
-the PS5 build and the tests (it asks for `sudo` once), on macOS the Homebrew formulae; then Pillow
-and the framework's npm packages. Read the script first if you'd rather install them yourself.
+## Develop and build
 
 ```sh
-git clone https://github.com/MyLuxy/overdrive.git
-cd overdrive
-npm run setup        # once; asks for sudo on Linux
-npm run dev          # the app in a window on your PC, rebuilt on every save under app/
+npm run setup          # supported apt/Homebrew desktop prerequisites; may request sudo
+npm run prepare:vortex # generate .vortex/vortex without editing upstream app/
+npm run dev            # native desktop preview; watch/restart on changes
+npm run test:vortex    # identity, overlay, synchronization and updater regression tests
+npm run test:app       # existing application state tests
+npm run test:framework # original native/framework test runner
+npm run build:app      # verified PS5 folder, ZIP and receipt in ps5-react/dist/
+npm run build          # additionally creates Vortex.exfat and update.zip; needs root/mounts
 ```
 
-| Command | What it does |
-| --- | --- |
-| `npm run setup` | Installs every dependency, once after cloning |
-| `npm run dev` | Opens the app in the desktop preview and rebuilds it on every save (state resets on restart) |
-| `npm run preview` | Opens the desktop preview once, without watching |
-| `npm test` | The framework's checks; needed after changes under `ps5-react/`, not for `app/` only |
-| `npm run build` | The PS5 app, then `Overdrive.exfat` and `update.zip` (see Building) |
-| `npm run build:app` | The PS5 app only, in `ps5-react/dist/PPSA99058` |
+Use LLVM 18 (including lld), Python 3.12+, pinned Pillow and locked npm dependencies. The prepared cloud machine also needs `source /workspace/.vortex-env/activate.sh` and a fixed virtual display: `xvfb-run -a -s '-screen 0 1920x1080x24' npm run dev`. See [building](docs/BUILDING.md) for fresh-host and cloud instructions and known upstream test limitations. No console upload or deployment happens during builds.
 
-The preview is the console's UI on your PC, so it takes a controller or the keyboard, and a mouse
-as a developer's shortcut. The first `npm run dev` downloads and compiles the framework's pinned
-dependencies, which takes a while; later starts are quick.
+## Maintain the fork
 
-| Action | Keyboard | Mouse | PS5 |
-| --- | --- | --- | --- |
-| Move focus | Arrow keys | Wheel (up/down) | D-pad |
-| Select | Enter or Space | Left click on the element | ✕ |
-| Back | Backspace | Right click | ○ |
-| Sections | Q / E | — | L1 / R1 |
-| Favorite | F | — | □ |
-| Quit the preview | Escape | — | PS button |
+Vortex customization lives under [`custom/vortex/`](custom/vortex/), not throughout the upstream app. The overlay verifies reviewed source hashes, applies two focused updater patches, replaces a few branding components and generates independent metadata/version/theme files. It refuses unreviewed changes to customized upstream files.
 
-The app's code is under `app/` (see "What's in this repository"); a change there needs no rebuild
-of the framework. Keep new user-facing strings in every file of `app/i18n/locales/`. On Linux the
-preview is compiled with clang (`CC=clang CXX=clang++`, set by the npm scripts), since GCC stops on
-a bounds warning in `archive_preflight.cpp`. Linux support for the preview is this fork's addition;
-upstream ps5-react supports macOS only.
+Daily synchronization opens or updates one draft integration PR; it never resets main or publishes a release. Manual Vortex builds produce reviewable draft releases only. Upstream and Vortex release versions are separate; catalog updates still use the upstream version and existing catalog service.
 
-</details>
+- [Branding and theme](docs/BRANDING.md)
+- [Upstream synchronization and conflict review](docs/UPSTREAM_SYNC.md)
+- [Building](docs/BUILDING.md)
+- [Releasing](docs/RELEASING.md)
+- [Updates and recovery](docs/UPDATING.md)
+- [Repository and license audit](docs/REPOSITORY_AUDIT.md)
 
-<details>
-<summary><b>Building</b></summary>
-<br>
+## Credits and licensing
 
-Builds run on `ubuntu-24.04` with clang 18, only from **Run workflow**: a push builds nothing.
-Each run puts `Overdrive.exfat` and `update.zip` in a draft release named after
-`app/version.js`, which only maintainers can see.
-
-The same build locally, from the repository root, after `npm run setup` (see Developing):
-
-```sh
-npm run build        # the app, then Overdrive.exfat and update.zip here
-npm run build:app    # the app only, in ps5-react/dist/PPSA99058
-```
-
-`packaging/build.sh` behind them finds LLVM 18 where apt or Homebrew put it (set
-`LLVM=<its bin directory>` otherwise), builds through `ps5-react/tools/build_ps5.py`, then runs
-`packaging/make-exfat.sh` under `sudo`, since the image is mounted to be filled. The build
-downloads its pinned dependencies into `ps5-react/.deps` and writes the app folder, a `.zip` and a
-`.receipt.json` into `ps5-react/dist`. It verifies the result itself (`tools/verify.py`), so a
-green build means the payload structure and signatures check out.
-
-The image is a plain exFAT volume whose root is the app folder, with 64 KiB clusters and the
-label `OVERDRIVE`. To release a new version, raise the version in `app/version.js` and
-`app/app.json`, run the workflow, test the draft's image on a console, then publish the draft:
-that creates its tag, and installed apps offer exactly the tested files on their next start.
-
-</details>
-
-<details>
-<summary><b>Fixes over upstream ps5-react</b></summary>
-<br>
-
-Two fixes in the vendored framework, both in the build tooling and both reported by a Linux build:
-
-- `ps5-react/tools/common.py` read the `git apply --summary` line with a fixed space count, which
-  glued the file mode onto the path (`100644 <path>`) and made every fresh dependency checkout
-  fail on the first patch that creates a file. It now splits on whitespace.
-- `ps5-react/tools/build_ps5.py` opened the pinned LLVM package's `data.tar.zst` with `tarfile`,
-  which reads zstd only from Python 3.14 while the documented minimum is 3.12. It now falls back
-  to the `zstd` command.
-
-Nothing else in the framework is changed.
-
-</details>
-
-## Credits
-
-- **[MyLuxy](https://github.com/MyLuxy)**, current maintainer, who decompiled Overdrive, recovered its source and rebuilt it.
-- **[ps5-react](https://github.com/half144/ps5-react)**, the framework it runs on.
-- **[ShadowMount+](https://github.com/drakmor/ShadowMountPlus)** by drakmor, which installs it.
-- **[kstuff](https://github.com/EchoStretch/kstuff-lite)** by EchoStretch, the kernel payload that lets the console run homebrew and the games it installs.
-- **[PS5 Homebrew Catalog](https://github.com/darkxex/ps5-homebrew-catalog)** by darkxex, the store API behind the Homebrew section, and every developer listed in it.
-
-`ps5-react/` is GPL-3.0-or-later and carries its own `LICENSE`, `LICENSE-ATTRIBUTION` and
-`NOTICE`. Every dependency notice is copied into `notices/` inside the built app, and
-`ps5-react/docs/DEPENDENCIES.md` lists them with their sources.
-
-<sub>Overdrive is an unofficial homebrew project and is not affiliated with or endorsed by Sony
-Interactive Entertainment. PlayStation and PS5 are trademarks of Sony Interactive Entertainment.</sub>
+MyLuxy recovered and maintains Overdrive; original source recovery headers remain unchanged. **PS5 React — created by half144 and PS5 React contributors.** Preserve its GPL-3.0-or-later license and attribution term, original contributor notices, and every dependency's own license. Vortex does not claim ownership of upstream code or replace its license grants. The recovered app has no separate top-level license grant; review redistribution rights before publishing binaries. UnRAR remains a separate program with its own non-GPL-compatible extraction license. See [dependency licensing](ps5-react/docs/DEPENDENCIES.md), [NOTICE](custom/vortex/NOTICE.txt), and the retained [original README](docs/UPSTREAM_README.md). Vortex is not affiliated with Sony.

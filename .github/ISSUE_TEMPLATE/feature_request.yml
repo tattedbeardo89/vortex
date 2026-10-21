@@ -1,5 +1,5 @@
 name: Feature request
-description: An idea to make Overdrive better.
+description: An idea to make Vortex better.
 title: "[Feature] "
 labels: ["enhancement"]
 body:
@@ -7,7 +7,7 @@ body:
     id: problem
     attributes:
       label: What would you like to do?
-      description: The problem or the moment where Overdrive falls short today.
+      description: The problem or the moment where Vortex falls short today.
     validations:
       required: true
 

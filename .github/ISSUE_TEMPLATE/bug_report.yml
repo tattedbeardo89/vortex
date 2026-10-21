@@ -1,19 +1,19 @@
 name: Bug report
-description: Something in Overdrive doesn't work as it should.
+description: Something in Vortex doesn't work as it should.
 title: "[Bug] "
 labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to report this. If Overdrive doesn't show up on the home screen
-        or an update won't install, the [Troubleshooting](https://github.com/MyLuxy/overdrive#troubleshooting)
+        Thanks for taking the time to report this. If Vortex doesn't show up on the home screen
+        or an update won't install, the [Troubleshooting](https://github.com/tattedbeardo89/vortex#troubleshooting)
         section may already have the answer.
 
   - type: input
     id: version
     attributes:
-      label: Overdrive version
+      label: Vortex version
       description: It's shown next to the logo at the top of the app.
       placeholder: v1.0.1
     validations:
@@ -37,7 +37,7 @@ body:
   - type: dropdown
     id: location
     attributes:
-      label: Where is Overdrive installed?
+      label: Where is Vortex installed?
       options:
         - USB drive (homebrew folder)
         - Internal storage (/data/homebrew)
@@ -50,12 +50,12 @@ body:
     attributes:
       label: Which part of the app?
       options:
-        - Installing or starting Overdrive
+        - Installing or starting Vortex
         - Discover, Browse or search
         - Game page
         - Downloads
         - Files
-        - Updating Overdrive
+        - Updating Vortex
         - Language or text
         - Something else
     validations:
@@ -74,7 +74,7 @@ body:
     attributes:
       label: How can we make it happen again?
       placeholder: |
-        1. Open Overdrive
+        1. Open Vortex
         2. Go to ...
         3. Press ...
     validations:
@@ -90,7 +90,7 @@ body:
     id: logs
     attributes:
       label: Log
-      description: For downloads and anything inside the app, copy `/data/ps5-react/PPSA99058/app.log` over FTP right after it happens. If a game won't install or start, the relevant lines from `/data/shadowmount/debug.log` help a lot.
+      description: For downloads and anything inside the app, copy `/data/ps5-react/PPSA99189/app.log` over FTP right after it happens. If a game won't install or start, the relevant lines from `/data/shadowmount/debug.log` help a lot.
       render: text
 
   - type: checkboxes
@@ -98,7 +98,7 @@ body:
     attributes:
       label: Before you send it
       options:
-        - label: I'm on the [latest release](https://github.com/MyLuxy/overdrive/releases/latest).
+        - label: I'm on the [latest release](https://github.com/tattedbeardo89/vortex/releases/latest).
           required: true
         - label: I searched the existing issues and this hasn't been reported yet.
           required: true

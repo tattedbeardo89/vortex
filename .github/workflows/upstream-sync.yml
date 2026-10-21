@@ -1,0 +1,34 @@
+name: upstream-sync
+on:
+  schedule:
+    - cron: '23 8 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: vortex-upstream-sync
+  cancel-in-progress: false
+jobs:
+  sync:
+    if: github.repository == 'tattedbeardo89/vortex'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install locked test dependencies
+        run: npm ci --ignore-scripts --prefix ps5-react
+      - name: Merge upstream, validate and open or update a draft PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 custom/vortex/sync.py

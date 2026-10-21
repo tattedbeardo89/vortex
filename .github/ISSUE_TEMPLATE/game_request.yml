@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        One game per request. Search the open issues first: if someone already asked for it, add a 👍 to that issue instead. Overdrive only lists links that third-party hosts already share, so a request can take time or stay open if no working link exists.
+        One game per request. Search the open issues first: if someone already asked for it, add a 👍 to that issue instead. Vortex only lists links that third-party hosts already share, so a request can take time or stay open if no working link exists.
 
   - type: input
     id: game
@@ -33,8 +33,8 @@ body:
     attributes:
       label: What's the request?
       options:
-        - The game isn't in Overdrive
-        - The game is in Overdrive but none of its sources work
+        - The game isn't in Vortex
+        - The game is in Vortex but none of its sources work
     validations:
       required: true
 
