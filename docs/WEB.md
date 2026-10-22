@@ -30,6 +30,8 @@ The browser polls while visible, backs off on errors, and reconnects after a bri
 
 ## Development and verification
 
+`SDL_VIDEODRIVER=offscreen npm run test:web:native` (or the same command under a working Xvfb display) builds/drives the actual desktop QuickJS application and native listener, checks pairing, shared favorites, real queue reads, invalid enqueue rejection and shutdown, and writes `.vortex/web-native-preview.json`. It does not perform a commercial transfer or verify PS5 hardware. Use a dedicated local preview sandbox.
+
 Run `npm run build:web`, `npm run test:web` and `npm run test:web:browser`. Browser tests require `npm ci --prefix custom/vortex/web` and `npx --prefix custom/vortex/web playwright install --with-deps chromium firefox webkit`. To use an existing local Chromium, set `VORTEX_BROWSER_PROJECTS=chromium VORTEX_CHROMIUM_EXECUTABLE=/usr/bin/chromium`.
 
 `npm run web:dev` is an explicitly development-only Node transport bound to 127.0.0.1. It uses the actual generated commercial catalog and a recorded homebrew manifest, a private mode-600 `.vortex/web-dev-console.json` pairing-code file, RAM-only favorites and no console downloads/storage. Read the code locally without committing or uploading that file. This server does not host PS5 state and is not a substitute for the native listener. Production has no Node dependency.

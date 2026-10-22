@@ -155,3 +155,12 @@ jobs:
           key: vortex-desktop-${{ hashFiles('ps5-react/dependencies.lock.json') }}
       - name: Run original framework suite without suppressing inherited failures
         run: xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:framework
+      - name: Exercise actual Vortex native HTTP and shared application state
+        if: always()
+        run: SDL_VIDEODRIVER=offscreen npm run test:web:native
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Vortex-web-native-preview
+          include-hidden-files: true
+          path: .vortex/web-native-preview.json

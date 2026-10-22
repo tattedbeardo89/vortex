@@ -20,7 +20,8 @@
     "test:web": "npm run prepare:vortex && node --test custom/vortex/web/tests/*.test.mjs && python3 -m unittest discover -s custom/vortex/web/tests -p \"test_*.py\"",
     "test:web:browser": "node --test custom/vortex/web/tests/*.browser.mjs",
     "web:dev": "npm run prepare:vortex && node custom/vortex/web/backend/dev-server.mjs",
-    "build:web": "python3 custom/vortex/web/build.py"
+    "build:web": "python3 custom/vortex/web/build.py",
+    "test:web:native": "python3 custom/vortex/web/tests/native-preview.py"
   },
   "repository": {
     "type": "git",
