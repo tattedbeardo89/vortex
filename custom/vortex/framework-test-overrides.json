@@ -6,7 +6,7 @@
   },
   "ps5-react/tools/test_network.py": {
     "upstreamSha256": "e0417fb3f50398fe78d7aa2fdccb3ee2da2e25862d3ba39f560a483ad3f7adae",
-    "patchedSha256": "02977c6955117d8ab474724c82d5c79643deb98eb00d39fd2893bd4406581ac1",
+    "patchedSha256": "2bf9da2f9718f98d3eed32861a0e30699eb8b2f7266465c3dc9f5d12d45be94d",
     "reason": "Link the Linux standalone network test with the crypto library used by network.cpp. Deterministically inject all three refusal statuses under the fixture lock without depending on client concurrency."
   },
   "ps5-react/tools/test_images.py": {
@@ -28,5 +28,10 @@
     "upstreamSha256": "53f6521f4480105c82de94fded39df4c113c5985afca6ef0cc619ff0e6354c5d",
     "patchedSha256": "306610e7006ab80878b5da51e008c8596bfddafd39c6ec02164b4a3651de1f98",
     "reason": "Link only the video test target with the same Linux static-FFmpeg dependencies as the existing preview target."
+  },
+  "ps5-react/tools/tests/network_client.cpp": {
+    "upstreamSha256": "e0393de5cf5c921302fc49c9003961174957595342e9349a424860d85c487bf2",
+    "reason": "Let resume tests cancel after an actual completed range and expose that count, so partial mutation checks do not depend on CPU timing.",
+    "patchedSha256": "b64d442c0d2be61a2bc64698a3a0048312dda2b521767238d48114ffd856e2f2"
   }
 }

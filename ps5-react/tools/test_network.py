@@ -284,8 +284,10 @@ def main():
         directory = Path(temporary)
         binary = compile_client(directory)
 
-        def run(endpoint, path="-", connections=4, max_bytes=1024*1024, cancel=0, digest="", method="GET", file_limit=0, stop=0, pieces=False, hashes=None, recover=False, reject_html=False, no_redirect=False, mirrors=(), adaptive=False, range_probe=False, range_bytes=0):
+        def run(endpoint, path="-", connections=4, max_bytes=1024*1024, cancel=0, digest="", method="GET", file_limit=0, stop=0, pieces=False, hashes=None, recover=False, reject_html=False, no_redirect=False, mirrors=(), adaptive=False, range_probe=False, range_bytes=0, cancel_completed_bytes=0):
             environment = dict(os.environ)
+            environment.pop("NETWORK_TEST_CANCEL_COMPLETED_BYTES", None)
+            if cancel_completed_bytes: environment["NETWORK_TEST_CANCEL_COMPLETED_BYTES"] = str(cancel_completed_bytes)
             environment.pop("NETWORK_TEST_RANGE_PROBE", None)
             environment.pop("NETWORK_TEST_RANGE_BYTES", None)
             if range_bytes: environment["NETWORK_TEST_RANGE_BYTES"] = str(range_bytes)
@@ -600,7 +602,9 @@ def main():
         for endpoint in ("/slow-no-validator", "/slow-no-validator-mutable"):
             path = directory / endpoint.removeprefix("/")
             Handler.mutated = False
-            assert run(endpoint, path, cancel=180)["state"] == "cancelled"
+            # A mutation check needs a retained complete range, not merely 180 ms of wall time.
+            partial = run(endpoint, path, connections=1, cancel_completed_bytes=1024*1024)
+            assert partial["state"] == "cancelled" and partial["completedBytes"] >= 1024*1024, partial
             Handler.mutated = endpoint.endswith("mutable")
             out = run(endpoint, path)
             if Handler.mutated:

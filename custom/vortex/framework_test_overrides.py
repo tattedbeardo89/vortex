@@ -13,6 +13,7 @@ TEST_PATHS = {
     'ps5-react/tools/test_images.py',
     'ps5-react/tools/test_archives.py',
     'ps5-react/tools/tests/image_client.cpp',
+    'ps5-react/tools/tests/network_client.cpp',
     'ps5-react/native/desktop/CMakeLists.txt',  # reviewed change is confined to the video-test target
 }
 
@@ -61,8 +62,8 @@ def apply(root):
     changed = subprocess.check_output(['git', 'apply', '--numstat', str(patch)], cwd=root, text=True)
     if {line.split('\t')[2] for line in changed.splitlines()} != set(entries):
         raise ValueError('Framework test patch changes paths outside its reviewed manifest')
-    subprocess.run(['git', 'apply', '--check', str(patch)], cwd=root, check=True, capture_output=True)
-    subprocess.run(['git', 'apply', str(patch)], cwd=root, check=True, capture_output=True)
+    subprocess.run(['git', 'apply', '--unidiff-zero', '--check', str(patch)], cwd=root, check=True, capture_output=True)
+    subprocess.run(['git', 'apply', '--unidiff-zero', str(patch)], cwd=root, check=True, capture_output=True)
     for name, item in entries.items():
         if sha((root / name).read_bytes()) != item['patchedSha256']:
             raise ValueError(f'Framework test patch output differs from reviewed hash: {name}')

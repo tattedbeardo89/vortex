@@ -13,6 +13,10 @@ def api(job, path):
     result = subprocess.run(['gh', 'api', f'repos/{repo}/actions/jobs/{job}{path}'], capture_output=True)
     if result.returncode:
         # gh errors can contain expiring storage URLs; do not publish those credentials.
+        detail = re.sub(r'https://\S+', '[URL redacted]', result.stderr.decode(errors='replace'))[:1500]
+        detail = f'Job {job}{path}: ' + detail
+        detail = detail.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+        print('::error title=CI log retrieval failed::' + detail, flush=True)
         raise SystemExit('Unable to retrieve the requested repository job through the GitHub API')
     return result.stdout
 
