@@ -30,19 +30,24 @@ Passing JavaScript tests allows previously unreached native checks to run. Direc
 - The video test target links Linux static FFmpeg's OpenSSL/zlib dependencies, matching the already-correct production preview target. Production target linkage is unchanged.
 - Archive tests prefer the existing normal bsdtar installation and fall back to the executable on PATH. Missing bsdtar remains a hard error; no archive case is skipped.
 
+The network server also had two timing assumptions exposed by complete execution. Adaptive concurrency could drop before the fixture injected all three required transient statuses; the fixture now deterministically injects 500, 503 and 429 even with serial requests, verified by a separate regression. A fixed 180 ms cancellation could occur before any full range was durably completed. The validator-less resume scenario now cancels at a completed 1 MiB boundary through a test-client-only option and asserts that progress before changing the server bytes. Original retry/status, mutation rejection, and byte-equality assertions remain intact.
+
 These are test-harness/platform corrections. They do not alter production download, image, video, catalog, updater, branding or theme behavior.
 
 ## Source baseline and upstream synchronization
 
-The original source/catalog descriptor remains pinned. `framework-test-overrides.json` records original and corrected SHA-256 values for six explicit test/harness files; `overrides/framework-tests.patch` records their exact diff. baseline.verify permits only those exact corrected bytes after verifying the matching original upstream blobs. All other runtime/catalog source drift remains an error. Tests reject modified overrides, unknown upstream input and attempts to allow native.js through the manifest.
+The original source/catalog descriptor remains pinned. `framework-test-overrides.json` records original and corrected SHA-256 values for seven explicit test/harness files; `overrides/framework-tests.patch` records their exact diff. baseline.verify permits only those exact corrected bytes after verifying the matching original upstream blobs. All other runtime/catalog source drift remains an error. Tests reject modified overrides, unknown upstream input and attempts to allow native.js through the manifest.
 
 Snapshot synchronization reapplies the patch only when all original source hashes match. An upstream integration that changes these contracts is marked for review and fails baseline validation rather than silently dropping the corrections. Already-fixed upstream tests should be reviewed and the corresponding overrides retired. The original framework ABI, host installation hooks and runtime JS remain byte-identical, preserving PR #4's Web integration contracts.
 
 ## Validation status
 
 - Corrected native JavaScript file: 12/12 passed.
-- Override/isolation regression tests: 5/5 passed, including intentional-assertion-failure isolation.
-- Existing Vortex, app and historical catalog checks: run separately; final results recorded after completion.
-- Full framework runner: running, including all native checks and final rendering parity; no success is claimed until it completes.
+- Override/isolation regression tests: 6/6 passed, including intentional-assertion-failure isolation.
+- Existing Vortex: 18 Python tests and 8 JavaScript tests passed, including baseline/theme/catalog/updater checks. Application: 17 passed. Historical catalog: 6 passed.
+- Framework JavaScript: all 136 passed. Native resources, removals, networking, images, text, video, passthrough and browser matcher passed independently.
+- PR #4 compatibility: temporary local combined candidate `14b2fe60a63e1ffb67605df53441c56f54030d8a` (PR #3 `3986399` plus PR #4 `910fd93`) passed 20 JavaScript and 8 Python Web tests, frontend build, and actual QuickJS/C++ pairing/assets/catalog/favorites/queue/logout/shutdown checks. No download or console hardware claim. Neither PR was merged.
+- Full local runner was executed without suppression. After 136 passing JavaScript tests and resources, the archive wide-7zip fixture hit the unchanged production memory-pressure guard. Direct measurement: committing its decoder memory took 3,696 ms on this machine, exceeding the existing 1,000 ms limit. The guard and archive assertions remain unchanged. This is a local resource-timing limitation, not a claimed full-suite pass.
+- Starter rendering/input self-test and worker parity passed separately: 3 snapshots identical single-core and across render workers. Hosted full-suite result is pending.
 
 No merge, release or console deployment is part of this work. No new artwork is added; the original framework suite creates its own temporary test fixtures.
