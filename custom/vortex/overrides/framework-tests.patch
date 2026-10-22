@@ -122,7 +122,7 @@ index 929cc5c..401e0cc 100644
  
  
 diff --git a/ps5-react/tools/test_network.py b/ps5-react/tools/test_network.py
-index 61711da..f36e099 100644
+index 61711da..586715b 100644
 --- a/ps5-react/tools/test_network.py
 +++ b/ps5-react/tools/test_network.py
 @@ -12,6 +12,7 @@ import signal
@@ -133,7 +133,26 @@ index 61711da..f36e099 100644
  import subprocess
  import tempfile
  import threading
-@@ -267,7 +268,7 @@ def compile_client(directory):
+@@ -69,10 +70,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
+             with self.guard:
+                 first = ("refuse", self.headers["Range"]) not in self.retried
+                 self.retried.add(("refuse", self.headers["Range"]))
+-            # The first range's first answer is archive.org's HTML error page; it must not read as a web page.
+-            if busy > 6 or (first and self.headers["Range"].startswith("bytes=0-")):
+-                status = (500, 503, 429)[len(self.refused) % 3]
+-                self.refused.append(status)
++            # Exercise every refusal even if adaptive concurrency shrinks before seven requests overlap.
++            # Select and record under one lock so concurrent handlers cannot duplicate/skip a status.
++            with self.guard:
++                refuse = len(self.refused) < 3 or busy > 6 or (first and self.headers["Range"].startswith("bytes=0-"))
++                status = (500, 503, 429)[len(self.refused) % 3] if refuse else None
++                if refuse: self.refused.append(status)
++            # The first refusal is archive.org's HTML error page; it must not read as a web page.
++            if refuse:
+                 body = b"<html><body>Internal Server Error</body></html>" if status == 500 else b""
+                 self.send_response(status)
+                 if status == 503: self.send_header("Retry-After", "0")
+@@ -267,7 +272,7 @@ def compile_client(directory):
      subprocess.run(["clang++", "-std=c++20", "-O2", "-Wall", "-Wextra", "-Werror", "-pthread",
                      "-I", str(ROOT / "native/shared"), str(ROOT / "tools/tests/network_client.cpp"),
                      str(ROOT / "native/shared/network.cpp"), str(ROOT / "tools/tests/network_test_platform.cpp"),

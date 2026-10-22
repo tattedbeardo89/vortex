@@ -81,6 +81,34 @@ class FrameworkTestOverrides(unittest.TestCase):
         self.assertRegex(result.stdout, r'(?m)^ok \d+ - a LAN broadcast')
         self.assertIn('# fail 1', result.stdout)
 
+    def test_throttling_fixture_exercises_all_statuses_even_with_one_connection(self):
+        import importlib.util
+        import threading
+        import urllib.request
+        import urllib.error
+        spec = importlib.util.spec_from_file_location('network_fixture', baseline.ROOT / 'ps5-react/tools/test_network.py')
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        server = module.http.server.ThreadingHTTPServer(('127.0.0.1', 0), module.Handler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        statuses = []
+        try:
+            for _ in range(4):
+                request = urllib.request.Request(f'http://127.0.0.1:{server.server_port}/throttled',
+                                                 headers={'Range': 'bytes=100-199'})
+                try:
+                    response = urllib.request.urlopen(request, timeout=10)
+                except urllib.error.HTTPError as error:
+                    response = error
+                with response:
+                    statuses.append(response.code)
+                    body = response.read()
+            self.assertEqual(statuses, [500, 503, 429, 206])
+            self.assertEqual(body, module.DATA[100:200])
+        finally:
+            server.shutdown(); server.server_close(); thread.join(timeout=5)
+
     def test_runtime_file_cannot_be_added_to_test_manifest(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
