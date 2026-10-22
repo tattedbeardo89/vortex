@@ -75,6 +75,10 @@ foreach(LIBRARY avformat avcodec swscale swresample avutil)
   target_link_libraries(ps5-react-video-test PRIVATE "${FFMPEG_PREFIX}/lib/lib${LIBRARY}.a")
 endforeach()
 target_link_libraries(ps5-react-video-test PRIVATE Threads::Threads)
+if(NOT APPLE)
+  # The test links the same static FFmpeg TLS implementation as the preview.
+  target_link_libraries(ps5-react-video-test PRIVATE OpenSSL::SSL OpenSSL::Crypto ZLIB::ZLIB)
+endif()
 if(APPLE)
   target_link_libraries(ps5-react-video-test PRIVATE "-framework VideoToolbox" "-framework CoreFoundation" "-framework CoreMedia"
                         "-framework CoreVideo" "-framework CoreServices" "-framework Security")

@@ -7,6 +7,10 @@ on:
         description: Optional branch to validate
         type: string
         default: ''
+      diagnostic_job_ids:
+        description: Optional comma-separated repository job IDs whose failure logs should be summarized
+        type: string
+        default: ''
       package_image:
         description: Also build Vortex.exfat and update.zip on the hosted Linux runner
         type: boolean
@@ -27,6 +31,21 @@ concurrency:
   group: vortex-validation-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  requested-log-diagnostics:
+    if: github.event_name == 'workflow_dispatch' && inputs.diagnostic_job_ids != ''
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.target_ref || github.sha }}
+      - name: Summarize the requested repository job log without altering test outcomes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DIAGNOSTIC_JOB_IDS: ${{ inputs.diagnostic_job_ids }}
+        run: python3 custom/vortex/framework_log_diagnostics.py
   identity-and-tests:
     runs-on: ubuntu-24.04
     steps:
@@ -155,6 +174,9 @@ jobs:
           key: vortex-desktop-${{ hashFiles('ps5-react/dependencies.lock.json') }}
       - name: Run original framework suite without suppressing inherited failures
         run: xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:framework
+      - name: Print complete framework subprocess logs on failure
+        if: failure()
+        run: find ps5-react/.build -maxdepth 1 -name '*-test.log' -type f -exec cat {} +
       - name: Exercise actual Vortex native HTTP and shared application state
         if: always()
         run: SDL_VIDEODRIVER=offscreen npm run test:web:native

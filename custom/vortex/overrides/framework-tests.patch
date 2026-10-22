@@ -1,0 +1,140 @@
+diff --git a/ps5-react/native/desktop/CMakeLists.txt b/ps5-react/native/desktop/CMakeLists.txt
+index d3c5388..3feb4b1 100644
+--- a/ps5-react/native/desktop/CMakeLists.txt
++++ b/ps5-react/native/desktop/CMakeLists.txt
+@@ -77,0 +78,4 @@ target_link_libraries(ps5-react-video-test PRIVATE Threads::Threads)
++if(NOT APPLE)
++  # The test links the same static FFmpeg TLS implementation as the preview.
++  target_link_libraries(ps5-react-video-test PRIVATE OpenSSL::SSL OpenSSL::Crypto ZLIB::ZLIB)
++endif()
+diff --git a/ps5-react/runtime/js/native.test.mjs b/ps5-react/runtime/js/native.test.mjs
+index a551b51..3365e1f 100644
+--- a/ps5-react/runtime/js/native.test.mjs
++++ b/ps5-react/runtime/js/native.test.mjs
+@@ -326 +326,2 @@ test('browser capture delivers only its result and cancellation rejects as Abort
+-  const calls = [], cancelled = [];
++  const calls = [], cancelled = [], active = new Set();
++  let clears = 0;
+@@ -328 +329 @@ test('browser capture delivers only its result and cancellation rejects as Abort
+-  globalThis.clearInterval = () => {};
++  globalThis.clearInterval = () => { clears++; };
+@@ -330,2 +331,7 @@ test('browser capture delivers only its result and cancellation rejects as Abort
+-    capture: (...args) => { calls.push(args); return next++; },
+-    poll: () => { const result = snapshots; snapshots = []; return result; },
++    capture: (...args) => { calls.push(args); const id = next++; active.add(id); return id; },
++    poll: () => {
++      const result = snapshots; snapshots = [];
++      for (const snapshot of result)
++        if (['completed', 'failed', 'cancelled'].includes(snapshot.state)) active.delete(snapshot.id);
++      return result;
++    },
+@@ -336 +342 @@ test('browser capture delivers only its result and cancellation rejects as Abort
+-    assert.deepEqual(calls, [['https://vikingfile.com/d/', '/Game.pkg', 180]]);
++    assert.deepEqual(calls, [['https://vikingfile.com/d/', '/Game.pkg', 180, [], false]]);
+@@ -344 +350,4 @@ test('browser capture delivers only its result and cancellation rejects as Abort
+-    const second = BrowserCapture.capture({suffix: '/Other.pkg', timeoutSeconds: 30});
++    assert.equal(clears, 1);
++    const rejected = ['https://vikingfile.com/d/Ab01234567/Old.pkg'];
++    const second = BrowserCapture.capture({suffix: '/Other.pkg', timeoutSeconds: 30, rejected, resume: true});
++    assert.deepEqual(calls[1], ['https://vikingfile.com/d/', '/Other.pkg', 30, rejected, true]);
+@@ -347,0 +357 @@ test('browser capture delivers only its result and cancellation rejects as Abort
++    assert.equal(clears, 2);
+@@ -348,0 +359,3 @@ test('browser capture delivers only its result and cancellation rejects as Abort
++    // Drain fixture-owned tasks before restoring the mock host/timer, even if an assertion fails.
++    snapshots = [...active].map(id => ({id, state: 'cancelled'}));
++    if (snapshots.length) tick();
+diff --git a/ps5-react/tools/test_archives.py b/ps5-react/tools/test_archives.py
+index efd021c..5d6cdd4 100644
+--- a/ps5-react/tools/test_archives.py
++++ b/ps5-react/tools/test_archives.py
+@@ -145,0 +146,2 @@ def main():
++  bsdtar=str(Path(prefix)/"bin/bsdtar") if (Path(prefix)/"bin/bsdtar").is_file() else shutil.which("bsdtar")
++  if not bsdtar: raise FileNotFoundError("Install bsdtar (libarchive-tools) to run archive tests")
+@@ -572 +574 @@ def main():
+-  subprocess.run([prefix+"/bin/bsdtar","--format=7zip","-cf",str(seven),"-C",str(root),"payload.bin"],check=True)
++  subprocess.run([bsdtar,"--format=7zip","-cf",str(seven),"-C",str(root),"payload.bin"],check=True)
+@@ -583 +585 @@ def main():
+-  subprocess.run([prefix+"/bin/bsdtar","--format=7zip","--options=7zip:compression=lzma2,7zip:compression-level=9","-cf",str(big),"-C",str(root),"payload.bin"],check=True)
++  subprocess.run([bsdtar,"--format=7zip","--options=7zip:compression=lzma2,7zip:compression-level=9","-cf",str(big),"-C",str(root),"payload.bin"],check=True)
+@@ -641 +643 @@ def main():
+-  p=root/"sparse.tar";subprocess.run([prefix+"/bin/bsdtar","--read-sparse","-cf",str(p),"-C",str(root),"sparse.bin"],check=True)
++  p=root/"sparse.tar";subprocess.run([bsdtar,"--read-sparse","-cf",str(p),"-C",str(root),"sparse.bin"],check=True)
+diff --git a/ps5-react/tools/test_images.py b/ps5-react/tools/test_images.py
+index 929cc5c..401e0cc 100644
+--- a/ps5-react/tools/test_images.py
++++ b/ps5-react/tools/test_images.py
+@@ -104 +104,3 @@ def compile_client(directory):
+-                    "-lcurl", "-o", str(binary)], check=True)
++                    "-lcurl", *([] if sys.platform == "darwin" else ["-lcrypto"]),
++                    *(["-Wl,--wrap=malloc,--wrap=calloc,--wrap=realloc"] if sys.platform.startswith("linux") else []),
++                    "-o", str(binary)], check=True)
+diff --git a/ps5-react/tools/test_network.py b/ps5-react/tools/test_network.py
+index 61711da..9ae427d 100644
+--- a/ps5-react/tools/test_network.py
++++ b/ps5-react/tools/test_network.py
+@@ -14,0 +15 @@ import struct
++import sys
+@@ -72,4 +73,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
+-            # The first range's first answer is archive.org's HTML error page; it must not read as a web page.
+-            if busy > 6 or (first and self.headers["Range"].startswith("bytes=0-")):
+-                status = (500, 503, 429)[len(self.refused) % 3]
+-                self.refused.append(status)
++            # Exercise every refusal even if adaptive concurrency shrinks before seven requests overlap.
++            # Select and record under one lock so concurrent handlers cannot duplicate/skip a status.
++            with self.guard:
++                refuse = len(self.refused) < 3 or busy > 6 or (first and self.headers["Range"].startswith("bytes=0-"))
++                status = (500, 503, 429)[len(self.refused) % 3] if refuse else None
++                if refuse: self.refused.append(status)
++            # The first refusal is archive.org's HTML error page; it must not read as a web page.
++            if refuse:
+@@ -270 +275 @@ def compile_client(directory):
+-                    "-lcurl", "-o", str(binary)], check=True)
++                    "-lcurl", *([] if sys.platform == "darwin" else ["-lcrypto"]), "-o", str(binary)], check=True)
+@@ -282 +287 @@ def main():
+-        def run(endpoint, path="-", connections=4, max_bytes=1024*1024, cancel=0, digest="", method="GET", file_limit=0, stop=0, pieces=False, hashes=None, recover=False, reject_html=False, no_redirect=False, mirrors=(), adaptive=False, range_probe=False, range_bytes=0):
++        def run(endpoint, path="-", connections=4, max_bytes=1024*1024, cancel=0, digest="", method="GET", file_limit=0, stop=0, pieces=False, hashes=None, recover=False, reject_html=False, no_redirect=False, mirrors=(), adaptive=False, range_probe=False, range_bytes=0, cancel_completed_bytes=0):
+@@ -283,0 +289,2 @@ def main():
++            environment.pop("NETWORK_TEST_CANCEL_COMPLETED_BYTES", None)
++            if cancel_completed_bytes: environment["NETWORK_TEST_CANCEL_COMPLETED_BYTES"] = str(cancel_completed_bytes)
+@@ -598 +605,3 @@ def main():
+-            assert run(endpoint, path, cancel=180)["state"] == "cancelled"
++            # A mutation check needs a retained complete range, not merely 180 ms of wall time.
++            partial = run(endpoint, path, connections=1, cancel_completed_bytes=1024*1024)
++            assert partial["state"] == "cancelled" and partial["completedBytes"] >= 1024*1024, partial
+diff --git a/ps5-react/tools/tests/image_client.cpp b/ps5-react/tools/tests/image_client.cpp
+index 7620b22..500849d 100644
+--- a/ps5-react/tools/tests/image_client.cpp
++++ b/ps5-react/tools/tests/image_client.cpp
+@@ -16,0 +17 @@
++#ifdef __APPLE__
+@@ -17,0 +19 @@
++#endif
+@@ -31,0 +34 @@ bool refused(std::size_t size) {
++#ifdef __APPLE__
+@@ -39,0 +43,14 @@ extern "C" void* realloc(void* address, std::size_t size) {
++#else
++// GNU ld wraps only calls from the test objects, leaving shared libcurl/libc++ allocations alone.
++extern "C" void* __real_malloc(std::size_t);
++extern "C" void* __real_calloc(std::size_t, std::size_t);
++extern "C" void* __real_realloc(void*, std::size_t);
++extern "C" void* __wrap_malloc(std::size_t size) { return refused(size) ? nullptr : __real_malloc(size); }
++extern "C" void* __wrap_calloc(std::size_t count, std::size_t size) {
++  return refused(count * size) ? nullptr : __real_calloc(count, size);
++}
++extern "C" void* __wrap_realloc(void* address, std::size_t size) {
++  return refused(size) ? nullptr : __real_realloc(address, size);
++}
++#endif
++
+diff --git a/ps5-react/tools/tests/network_client.cpp b/ps5-react/tools/tests/network_client.cpp
+index d2724b6..20c0a19 100644
+--- a/ps5-react/tools/tests/network_client.cpp
++++ b/ps5-react/tools/tests/network_client.cpp
+@@ -52,0 +53,2 @@ int main(int argc, char** argv) {
++  const char* cancel_completed = std::getenv("NETWORK_TEST_CANCEL_COMPLETED_BYTES");
++  const std::uint64_t cancel_completed_bytes = cancel_completed ? std::strtoull(cancel_completed, nullptr, 10) : 0;
+@@ -82,0 +85,2 @@ int main(int argc, char** argv) {
++      if (cancel_completed_bytes && result.completed_bytes >= cancel_completed_bytes &&
++          result.state != "completed" && result.state != "failed" && result.state != "cancelled") network::cancel(id);
+@@ -94,0 +99 @@ int main(int argc, char** argv) {
++          << ",\"completedBytes\":" << result.completed_bytes

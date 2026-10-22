@@ -10,6 +10,8 @@ Vortex never independently generates a commercial catalog. There is no Vortex co
 
 The candidate runs overlay/baseline validation, theme/source contracts, catalog/homebrew parity, independent updater tests, application tests and retained historical catalog diagnostics. The reusable validation workflow also builds native PS5 output and runs framework checks. Unreviewed UI/theme or updater changes fail closed; hashes are never automatically refreshed. The report includes the previous and candidate source/catalog revisions and failing checks. Read-only validation has no release permissions. Existing draft PRs and integration branches are reused with ordinary fast-forward pushes; repeat runs at the same revision make no new source changes.
 
+Framework test-only corrections are recorded in `custom/vortex/framework-test-overrides.json` and `overrides/framework-tests.patch`. Snapshot import reapplies them only to matching original source hashes. A changed upstream test/harness requires review, adaptation or removal of a now-obsolete correction. Baseline verification still rejects unapproved runtime/catalog drift and modified patched bytes. See investigations/framework-test-failures.md for the exact scope.
+
 ## Review a candidate
 
 1. Check the candidate upstream commit and source version against the selected baseline. Review upstream changes outside app/framework/tools (including packaging and newly introduced workflows) explicitly; Vortex wrappers remain custom integration points.
