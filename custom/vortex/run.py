@@ -10,6 +10,7 @@ import signal
 import time
 import sys
 from overlay import ROOT, OUTPUT, configuration, prepare
+from web.integration.overlay import framework_overlay
 
 def run(argv, cwd=ROOT):
     subprocess.run([str(a) for a in argv], cwd=cwd, check=True)
@@ -18,7 +19,7 @@ def input_stamp():
     entries = []
     for root in (ROOT / 'app', ROOT / 'custom/vortex'):
         for path in root.rglob('*'):
-            if path.is_file() and '__pycache__' not in path.parts:
+            if path.is_file() and not {'__pycache__', 'node_modules'}.intersection(path.parts):
                 try:
                     stat = path.stat()
                     entries.append((str(path), stat.st_mtime_ns, stat.st_size))
@@ -28,7 +29,7 @@ def input_stamp():
 
 def watch_overlay(command):
     # Upstream watches the staged app/runtime; this parent refreshes staging when source/custom inputs change.
-    process = subprocess.Popen([str(a) for a in command], cwd=ROOT / 'ps5-react', start_new_session=True)
+    process = subprocess.Popen([str(a) for a in command], cwd=framework_overlay(), start_new_session=True)
     stamp = input_stamp()
     try:
         while process.poll() is None:
@@ -38,7 +39,7 @@ def watch_overlay(command):
             time.sleep(0.25)
             stamp = input_stamp()
             try:
-                lock_path = ROOT / 'ps5-react/.build/build.lock'
+                lock_path = ROOT / '.vortex/framework/.build/build.lock'
                 lock_path.parent.mkdir(exist_ok=True)
                 with lock_path.open('w') as lock:
                     fcntl.flock(lock, fcntl.LOCK_EX)
@@ -62,12 +63,13 @@ def main():
     app = prepare()
     brand = configuration()
     if args.command == 'prepare': return
+    framework = framework_overlay()
     if args.command in ('preview', 'dev'):
         os.environ.setdefault('CC', 'clang'); os.environ.setdefault('CXX', 'clang++')
         command = [sys.executable, 'tools/cli.py', 'preview', '--app-dir', app,
                    *(['--watch'] if args.command == 'dev' else [])]
         if args.command == 'dev': watch_overlay(command)
-        else: run(command, ROOT / 'ps5-react')
+        else: run(command, framework)
         return
     candidates = [Path(os.environ['LLVM'])] if os.environ.get('LLVM') else [
         Path('/usr/lib/llvm-18/bin'), Path('/opt/homebrew/opt/llvm@18/bin'), Path('/usr/local/opt/llvm@18/bin')]
@@ -75,7 +77,7 @@ def main():
     if llvm is None: raise RuntimeError('Install LLVM 18, including lld, and set LLVM to its bin directory')
     version = subprocess.check_output([str(llvm / 'llvm-config'), '--version'], text=True).strip()
     if not version.startswith('18.'): raise RuntimeError('The pinned PS5 toolchain requires LLVM 18')
-    run([sys.executable, 'tools/build_ps5.py', '--app-dir', app, '--llvm', llvm], ROOT / 'ps5-react')
+    run([sys.executable, 'tools/build_ps5.py', '--app-dir', app, '--llvm', llvm], framework)
     run([sys.executable, ROOT / 'custom/vortex/validate.py', '--built'])
     if args.no_package: return
     output = ROOT / brand['artifact']

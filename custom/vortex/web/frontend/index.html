@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="color-scheme" content="dark" />
+    <meta name="referrer" content="no-referrer" />
+    <title>Vortex Web</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body>
+    <a class="skip" href="#content">Skip to content</a>
+    <aside id="sidebar">
+      <a class="brand" href="#dashboard"
+        ><span class="brand-mark" aria-hidden="true">V</span
+        ><span>Vortex <small>YOUR CONSOLE, CONNECTED</small></span></a
+      >
+      <button
+        id="menu-toggle"
+        class="mobile-menu"
+        aria-expanded="false"
+        aria-controls="navigation"
+      >
+        Menu
+      </button>
+      <nav id="navigation" aria-label="Main navigation">
+        <a href="#dashboard">Discover</a><a href="#catalog">All games</a
+        ><a href="#catalog?platform=ps5">PlayStation 5</a
+        ><a href="#catalog?platform=ps4">PlayStation 4</a
+        ><a href="#homebrew">Homebrew</a><a href="#favorites">Favorites</a
+        ><a href="#downloads">Downloads <span id="queue-count"></span></a
+        ><a href="#settings">Settings & devices</a>
+      </nav>
+      <div class="sidebar-foot">
+        <span id="connection" role="status" aria-live="polite">Connecting…</span
+        ><small id="build-label">Local network · Vortex must remain open</small>
+      </div>
+    </aside>
+    <div class="workspace">
+      <header class="topbar">
+        <form id="search-form" role="search">
+          <label class="sr-only" for="search">Search Vortex</label
+          ><input
+            id="search"
+            type="search"
+            placeholder="Find your next game…"
+            maxlength="200"
+          /><button type="submit">Search</button>
+        </form>
+        <button id="sign-out" class="quiet">Sign out</button>
+      </header>
+      <div id="notice" class="notice" role="status" hidden></div>
+      <main id="content" tabindex="-1">
+        <div class="empty">Connecting to Vortex…</div>
+      </main>
+      <footer>Vortex Web · Same catalog. Same queue. Your PS5.</footer>
+    </div>
+    <dialog id="pair-dialog" aria-labelledby="pair-title">
+      <form id="pair-form">
+        <span class="eyebrow">PRIVATE LAN ACCESS</span>
+        <h1 id="pair-title">Pair with your Vortex</h1>
+        <p>
+          On your PS5, open <strong>Web</strong>, enable Vortex Web and generate
+          a one-time pairing code.
+        </p>
+        <label for="pair-code">One-time code</label
+        ><input
+          id="pair-code"
+          name="code"
+          autocomplete="one-time-code"
+          autocapitalize="characters"
+          pattern="[a-fA-F0-9]{8}"
+          minlength="8"
+          maxlength="8"
+          placeholder="8-character code"
+          required
+        /><label for="device-name">Device name</label
+        ><input
+          id="device-name"
+          name="name"
+          maxlength="60"
+          placeholder="My browser"
+          required
+        /><button type="submit" class="primary">Connect to Vortex</button>
+        <p id="pair-error" class="error" role="alert"></p>
+        <small
+          >Trusted local networks only. Browser sessions expire after one hour
+          and when Vortex closes.</small
+        >
+      </form>
+    </dialog>
+    <dialog id="details-dialog" aria-label="Game details">
+      <button id="close-details" class="close" aria-label="Close game details">
+        ×
+      </button>
+      <div id="details-content"></div>
+    </dialog>
+  </body>
+</html>

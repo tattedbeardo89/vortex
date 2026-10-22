@@ -98,7 +98,7 @@ def main():
         env=dict(os.environ)
         for key in ('GH_TOKEN','GITHUB_TOKEN'): env.pop(key,None)
         checks=[]
-        for command in ([sys.executable,'custom/vortex/overlay.py','--check'],['npm','run','test:vortex'],['npm','run','test:app'],['npm','run','test:catalog']):
+        for command in ([sys.executable,'custom/vortex/overlay.py','--check'],['npm','run','test:vortex'],['npm','run','test:app'],['npm','run','test:catalog'],['npm','run','test:web']):
             run=subprocess.run(command,cwd=repo,env=env,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
             checks.append({'command':command,'exit':run.returncode,'output':run.stdout[-5000:]})
         result['checks']=checks

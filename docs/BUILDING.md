@@ -28,3 +28,9 @@ PR #3's original 134/136 JavaScript result came from a stale five-argument brows
 ## Known inherited test limitations
 
 `npm test` runs Vortex checks, existing app tests, then the framework suite without hiding failures. The original JavaScript assertion/isolation defects and Linux harness issues are corrected as documented above. The local archive stress fixture can still hit the unchanged production memory-pressure guard on a slow host; this remains a hard failure, not a skipped case. See the investigation for current measured results and the selected hosted validation run. Actual prior Vortex build evidence remains in VALIDATION.md.
+
+## Web extension
+
+Vortex 1.1.0 adds a protected web extension; raw upstream app/framework trees remain unchanged. `npm run build:web` verifies integration contracts and emits `.vortex/web-frontend.json` plus static assets in `.vortex/vortex/vortex-web-assets`. `npm run build:app` uses the generated `.vortex/framework` overlay to install the private native listener hook. Its build directory is separate from the unmodified framework's native cache. `VORTEX-WEB.json` in the packaged title records assets, baseline and contracts. Native validation checks the packaged hashes. Existing artwork is reused; no new raster images are generated.
+
+Install browser test dependencies with `npm ci --prefix custom/vortex/web`; run `npm run test:web` and `npm run test:web:browser`. CI installs Chromium, Firefox and WebKit. The root test command runs the corrected framework suite without suppressing failures. See WEB.md for development transport restrictions and WEB_ARCHITECTURE.md for native integration. The old working image lacks this listener: a new native image/update is required for Web, but replacement is not performed automatically.

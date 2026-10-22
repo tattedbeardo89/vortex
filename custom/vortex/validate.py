@@ -20,9 +20,12 @@ def validate_built(brand):
     assert param['localizedParameters']['en-US']['titleName'] == brand['name']
     assert receipt['title'] == brand['titleId'] and receipt['config'] == config
     assert receipt['app'] == 'vortex' and not receipt['hardware_tested']
+    assert json.loads((app / 'VORTEX-WEB.json').read_text()) == json.loads((OUTPUT / 'VORTEX-WEB.json').read_text())
+    for name, checksum in json.loads((app / 'VORTEX-WEB.json').read_text())['assets'].items():
+        assert digest(app / 'vortex-web-assets' / name) == checksum
     assert json.loads((app / 'VORTEX-BASELINE.json').read_text()) == json.loads((CUSTOM / 'upstream-baseline.json').read_text())
     assert (app / 'VORTEX-NOTICE.txt').read_text() == (CUSTOM / 'NOTICE.txt').read_text()
-    subprocess.run([sys.executable, 'tools/verify.py', brand['titleId']], cwd=ROOT / 'ps5-react', check=True)
+    subprocess.run([sys.executable, 'tools/verify.py', brand['titleId']], cwd=ROOT / '.vortex/framework', check=True)
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -50,6 +53,11 @@ def main():
         assert 'UPSTREAM_VERSION as VERSION' in consumer.read_text()
     assert '"overdrive cdn"' in (OUTPUT / 'game/sources.js').read_text()
     assert brand['name'] in (OUTPUT / 'vortex-brand.js').read_text()
+    from web.integration.overlay import verify as verify_web
+    verify_web()
+    assert (OUTPUT / 'vortex-web/integration/WebPanel.jsx').is_file()
+    assert 'jsx(WebPanel, {})' in (OUTPUT / 'ui/Header.jsx').read_text()
+    assert 'vortex-web-assets' in config['resources']
     for path in (OUTPUT / 'i18n/locales').glob('*.json'):
         text = path.read_text()
         assert not re.search(r'Overdrive(?! CDN)', text), path

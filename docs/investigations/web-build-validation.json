@@ -1,0 +1,117 @@
+{
+  "sourceCommit": "1f2fbbd77026a4da4320e23138213bb0ff669da6",
+  "pullRequest": 4,
+  "basePullRequest": 3,
+  "upstreamCommit": "9f90d882771eb87f75579b10f951cc2dbe4daf2a",
+  "catalogRevision": "e6f05a52c7909f56ad70f1868543192ce083e1d9",
+  "counts": {
+    "commercial": 1148,
+    "ps5": 1009,
+    "ps4": 139,
+    "homebrewFixture": 104
+  },
+  "run": 39803377858,
+  "jobs": {
+    "identity-and-tests": "success",
+    "web-extension": "in_progress (API/frontend passed; browser installation/rerun pending)",
+    "native-build": "success",
+    "framework-tests": "failure"
+  },
+  "localTests": {
+    "webJavaScript": {
+      "passed": 20,
+      "failed": 0
+    },
+    "nativeAndCompatibilityPython": {
+      "passed": 8,
+      "failed": 0
+    },
+    "vortexPython": {
+      "passed": 12,
+      "failed": 0
+    },
+    "vortexJavaScript": {
+      "passed": 8,
+      "failed": 0
+    },
+    "historicalCatalogPython": {
+      "passed": 6,
+      "failed": 0
+    },
+    "originalApplicationJavaScript": {
+      "passed": 17,
+      "failed": 0
+    },
+    "originalFrameworkJavaScript": {
+      "passed": 134,
+      "failed": 2
+    },
+    "browserEnginesLocal": [
+      "chromium"
+    ]
+  },
+  "hostedBrowserEngines": [
+    "chromium",
+    "firefox",
+    "webkit"
+  ],
+  "artifact": {
+    "id": 12436168778,
+    "name": "Vortex-native-validation",
+    "size": 55163033,
+    "archiveSha256": "d5b5356dafe03d7e3af13bb47a48984c90fbe32d4ac6d479c1d2984f5a924d72",
+    "contains": [
+      "Vortex.exfat",
+      "update.zip",
+      "vortex-update.json",
+      "validation/provenance reports"
+    ],
+    "hostedPackagingVerified": true,
+    "independentLocalDownloadVerified": false,
+    "localDownloadBlocker": "Cloud proxy Forbidden response for final artifact blob host"
+  },
+  "hardwareTested": false,
+  "providerReachabilityTested": false,
+  "releasePublished": false,
+  "consoleDeployed": false,
+  "nativeApplicationPreview": {
+    "transport": "actual desktop native listener and QuickJS application",
+    "hardwareTested": false,
+    "counts": {
+      "total": 1148,
+      "ps5": 1009,
+      "ps4": 139
+    },
+    "development": false,
+    "sharedFavorites": true,
+    "actualQueueRead": true,
+    "transfersTested": false,
+    "pairingRevocationAndShutdown": true
+  },
+  "previousImplementationBuild": {
+    "sourceCommit": "eac1f1f869b2c89639f51e30357896a7fff74c42",
+    "run": 39798912516,
+    "artifact": {
+      "id": 12434098901,
+      "name": "Vortex-native-validation",
+      "size": 55152126,
+      "archiveSha256": "8f49417bdac195e332f6576e5c9fd8d800d57ed5442839e9b929c9eefeb170e2",
+      "contains": [
+        "Vortex.exfat",
+        "update.zip",
+        "vortex-update.json",
+        "validation/provenance reports"
+      ],
+      "hostedPackagingVerified": true,
+      "independentLocalDownloadVerified": false,
+      "localDownloadBlocker": "Cloud proxy HTTP 403 for artifact blob host"
+    }
+  },
+  "hostedNativeApplicationPreview": {
+    "passed": true,
+    "artifactId": 12436383275,
+    "hardwareTested": false
+  },
+  "hostedBrowserEvidenceRun": 39798912516,
+  "finalArtifactIndependentDownloadBlocker": "Cloud proxy Forbidden response: productionresultssa0.blob.core.windows.net"
+}
