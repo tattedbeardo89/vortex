@@ -8,7 +8,7 @@
     "build:app": "bash packaging/build.sh --no-package",
     "preview": "python3 custom/vortex/run.py preview",
     "dev": "python3 custom/vortex/run.py dev",
-    "test": "npm run test:vortex && npm run test:catalog && npm run test:app && npm run test:framework",
+    "test": "npm run test:vortex && npm run test:web && npm run test:catalog && npm run test:app && npm run test:framework",
     "prepare:vortex": "python3 custom/vortex/overlay.py",
     "test:vortex": "python3 custom/vortex/validate.py && python3 -m unittest discover -s custom/vortex/tests -p \"test_*.py\" && npm run test:parity && node --test custom/vortex/tests/*.test.mjs",
     "test:app": "node --test app/state/*.test.mjs",
@@ -16,7 +16,11 @@
     "diagnose:catalog": "python3 custom/vortex/parity.py",
     "test:catalog": "python3 -m unittest discover -s tools/catalog-diagnostics -p \"test_*.py\"",
     "test:parity": "python3 custom/vortex/parity.py",
-    "diagnose:catalog-history": "python3 tools/catalog-diagnostics/compare.py"
+    "diagnose:catalog-history": "python3 tools/catalog-diagnostics/compare.py",
+    "test:web": "npm run prepare:vortex && node --test custom/vortex/web/tests/*.test.mjs && python3 -m unittest discover -s custom/vortex/web/tests -p \"test_*.py\"",
+    "test:web:browser": "node --test custom/vortex/web/tests/*.browser.mjs",
+    "web:dev": "npm run prepare:vortex && node custom/vortex/web/backend/dev-server.mjs",
+    "build:web": "python3 custom/vortex/web/build.py"
   },
   "repository": {
     "type": "git",

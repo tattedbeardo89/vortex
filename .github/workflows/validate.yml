@@ -56,6 +56,37 @@ jobs:
             .vortex/validation.json
             .vortex/catalog-parity.json
             custom/vortex/upstream-baseline.json
+  web-extension:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.target_ref || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci --ignore-scripts --prefix ps5-react
+      - run: npm ci --ignore-scripts --prefix custom/vortex/web
+      - run: npm run test:web
+      - run: npm run build:web
+      - name: Install Chromium, Firefox and WebKit for browser compatibility
+        run: custom/vortex/web/node_modules/.bin/playwright install --with-deps chromium firefox webkit
+      - name: Test desktop, tablet and phone browser flows without screenshots
+        run: npm run test:web:browser
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Vortex-web-validation
+          include-hidden-files: true
+          path: |
+            .vortex/web-frontend.json
+            .vortex/framework/.vortex-framework.json
+            .vortex/vortex/vortex-web-assets/
   native-build:
     runs-on: ubuntu-24.04
     steps:
@@ -79,6 +110,7 @@ jobs:
         with:
           path: ps5-react/.deps
           key: vortex-native-${{ hashFiles('ps5-react/dependencies.lock.json') }}
+      - run: npm run build:web
       - name: Build native app
         if: ${{ !inputs.package_image }}
         run: npm run build:app
@@ -92,6 +124,8 @@ jobs:
           include-hidden-files: true
           path: |
             .vortex/validation.json
+            .vortex/web-frontend.json
+            .vortex/framework/.vortex-framework.json
             ps5-react/dist/*.receipt.json
             Vortex.exfat
             update.zip

@@ -55,6 +55,9 @@ class ThemeRegression(unittest.TestCase):
             text=re.sub(r'Overdrive(?! CDN)','Vortex',text)
             text=text.replace('github.com/MyLuxy/overdrive','github.com/tattedbeardo89/vortex')
             text=text.replace('[overdrive]','[vortex]').replace('registerComponent("overdrive"','registerComponent("vortex"')
+            text=text.replace("import { WebPanel, WebControl } from '../vortex-web/integration/WebPanel.jsx';\n",'')
+            text=text.replace('      jsx(WebPanel, {}),\n','').replace('            jsx(WebControl, {}),\n','')
+            text=text.replace('\nexport { featured as webFeatured };\n','').replace('\nexport { CHARTS as webCharts };\n','')
             return text
         for relative in json.loads((CUSTOM/'theme-contracts.json').read_text()):
             if relative=='ui/Splash.jsx':continue

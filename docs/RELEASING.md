@@ -8,3 +8,9 @@
 6. Explicitly publish the tested draft through GitHub after approval. Never create a public release as part of sync. GitHub must expose a SHA-256 digest for update.zip; without it clients refuse the update. The Vortex release asset URL must be exactly https://github.com/tattedbeardo89/vortex/releases/download/v<version>/update.zip.
 
 The draft tool refuses to modify an already published version. Retest a draft after any asset replacement. For rollback, publish a NEW, higher Vortex version built from the previous working source; clients intentionally refuse automatic downgrades. Alternatively install a trusted previous Vortex.exfat manually while the application is closed, preserving the title ID and keeping backup copies outside the watched homebrew directory.
+
+## Web artifacts and rollback
+
+Version 1.1.0 includes native listener code and bundled frontend assets; copying frontend files onto an old image cannot enable it. Build a new Vortex.exfat and matching update.zip using the existing identity and packaging process. Preserve VORTEX-WEB.json, web-frontend.json, native receipt, selected baseline and validation reports with the source commit. Keep physical PS5 checks separate from compilation and desktop/browser tests. An inherited framework failure must remain visible in release notes/checks, not be suppressed.
+
+Do not publish or deploy automatically. Before a later manual hardware trial, retain the previous known-working Vortex.exfat and update.zip. If an upgrade fails, stop Vortex and reinstall that known-working image using the existing ShadowMount+ installation method; preserve title data unless intentionally resetting it. Web defaults disabled in fresh data; for existing data, disable Web locally and revoke devices before rollback. Never replace Vortex with an upstream Overdrive binary or a mismatched title ID. Browser sessions must be paired again after restart.

@@ -6,7 +6,7 @@ A branding-only, Seerr-themed fork based on [Overdrive by MyLuxy](https://github
 
 Repository and releases: **https://github.com/tattedbeardo89/vortex**. The originally proposed vortex-ps5 repository was unavailable; the owner selected this existing repository instead.
 
-The selected upstream baseline is **published Overdrive v1.0.8**, commit `9f90d882771eb87f75579b10f951cc2dbe4daf2a`. Vortex 1.0.1 reproduces its real catalog: **1,148 total / 1,009 PS5 / 139 PS4**, and 104 visible homebrew apps in the recorded real API snapshot. Counts are measured, not enforced. See the [baseline/parity report](docs/BRANDING_ONLY.md).
+The selected upstream baseline is **published Overdrive v1.0.8**, commit `9f90d882771eb87f75579b10f951cc2dbe4daf2a`. Vortex 1.1.0 retains its real catalog: **1,148 total / 1,009 PS5 / 139 PS4**, and 104 visible homebrew apps in the recorded real API snapshot. Counts are measured, not enforced. See the [baseline/parity report](docs/BRANDING_ONLY.md).
 
 ## Install alongside Overdrive
 

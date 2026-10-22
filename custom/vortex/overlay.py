@@ -10,6 +10,7 @@ import subprocess
 import tempfile
 from baseline import verify as verify_baseline
 from theme import apply_theme, theme_configuration, verify_theme
+from web.integration.overlay import app_overlay as web_overlay, verify as verify_web
 
 ROOT = Path(__file__).resolve().parents[2]
 CUSTOM = ROOT / 'custom/vortex'
@@ -63,6 +64,7 @@ def prepare():
     baseline = verify_baseline()
     contracts = verify_contracts()
     verify_theme()
+    verify_web()
     OUTPUT.parent.mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='overlay-', dir=OUTPUT.parent) as tmp:
         stage = Path(tmp) / 'vortex'
@@ -112,6 +114,7 @@ def prepare():
                   'version': brand['version'], 'upstreamVersion': re.search(r'"([0-9.]+)"', upstream_version)[1],
                   'customizedSources': contracts, 'upstreamBaseline': baseline, 'themedSources': themed}
         (stage / '.vortex-generated.json').write_text(json.dumps(report, indent=2) + '\n')
+        web_overlay(stage, baseline)
         audit_generated(stage)
         if OUTPUT.exists():
             if not (OUTPUT / '.vortex-generated.json').is_file():
@@ -129,6 +132,6 @@ if __name__ == '__main__':
     parser.add_argument('--check', action='store_true', help='Check source contracts/config without writing')
     args = parser.parse_args()
     if args.check:
-        configuration(); verify_baseline(); verify_contracts(); verify_theme(); print('Vortex configuration and upstream contracts valid')
+        configuration(); verify_baseline(); verify_contracts(); verify_theme(); verify_web(); print('Vortex configuration and upstream contracts valid')
     else:
         prepare()
