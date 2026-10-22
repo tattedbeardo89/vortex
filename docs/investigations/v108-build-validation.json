@@ -1,0 +1,91 @@
+{
+  "format": 1,
+  "sourceCommit": "b736d673fa322f7dff084dafd6713f5c24f9b4ff",
+  "run": "https://github.com/tattedbeardo89/vortex/actions/runs/39698683267",
+  "nativeJobPassed": true,
+  "identityAndCatalogThemeJobPassed": true,
+  "overallRun": "failure: two inherited framework failures remain visible",
+  "artifact": {
+    "id": 12392316374,
+    "name": "Vortex-native-validation",
+    "size_in_bytes": 55075836,
+    "digest": "sha256:3b67839e0aa31094b56090809b134a43485ad0da190d290d1e55b7ae90a0d264",
+    "expired": false
+  },
+  "download": "https://github.com/tattedbeardo89/vortex/actions/runs/39698683267/artifacts/12392316374",
+  "nativeChecks": [
+    "PS5 title/content/version metadata",
+    "ELF structure and SELF integrity",
+    "native receipt and packaged file hashes",
+    "folder ZIP integrity",
+    "VORTEX-BASELINE.json source/catalog provenance",
+    "exFAT header and image size",
+    "update ZIP exact entries, manifest identity/version/baseline and CRC"
+  ],
+  "localDownloadedArtifactInspection": false,
+  "localDownloadLimitation": "GitHub artifact redirect to productionresultssa5.blob.core.windows.net returned HTTP 403 in this cloud environment. Host was added to the saved network draft; retaining/applying that configuration requires environment review/save/publish. Hosted native validation passed; no local byte inspection is claimed.",
+  "tests": {
+    "vortexPython": {
+      "passed": 12
+    },
+    "vortexJavaScript": {
+      "passed": 8
+    },
+    "historicalCatalog": {
+      "passed": 6
+    },
+    "application": {
+      "passed": 17
+    },
+    "framework": {
+      "passed": 134,
+      "failed": 2,
+      "failures": [
+        "browser-capture argument expectation",
+        "cascading LAN timer failure"
+      ]
+    }
+  },
+  "baseline": {
+    "format": 1,
+    "repository": "MyLuxy/overdrive",
+    "ref": "v1.0.8",
+    "commit": "9f90d882771eb87f75579b10f951cc2dbe4daf2a",
+    "sourceVersion": "1.0.8",
+    "sourcePaths": [
+      "app",
+      "ps5-react",
+      "tools",
+      ":(exclude)tools/catalog-diagnostics"
+    ],
+    "appTree": "07fc5dab5f57ffbf4646b13f6df106953203025d",
+    "frameworkTree": "9d0fa31212204414f673724c3bba5f6d4213eb57",
+    "catalog": {
+      "dataRevision": "e6f05a52c7909f56ad70f1868543192ce083e1d9",
+      "moduleSha256": "2b2abc88c8665b28407c9032b61dd39b08d993a87f66c9cc88b1f0738a4ced07",
+      "schema": "upstream JavaScript catalog + JSON releases/pages",
+      "schemaVersion": null,
+      "schemaVersionReason": "No separately numbered bundled schema in this upstream version",
+      "updateConsumer": false,
+      "updateCompatibilityVersion": null
+    }
+  },
+  "hardwareTested": false,
+  "releasePublished": false,
+  "consoleDeployment": false,
+  "rasterAssetsGenerated": false,
+  "desktopPreview": {
+    "identity": [
+      "Vortex v1.0.1"
+    ],
+    "focusableElements": 93,
+    "focusBefore": [
+      "spotlight:cta"
+    ],
+    "focusAfterDown": [
+      "popular:PPSA29264"
+    ],
+    "runtimeErrorLines": [],
+    "screenshotsGenerated": false
+  }
+}
