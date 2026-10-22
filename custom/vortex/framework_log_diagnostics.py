@@ -24,10 +24,12 @@ for job in jobs:
     metadata = json.loads(api(job, ''))
     log = api(job, '/logs').decode(errors='replace')
     log = re.sub(r'\x1b\[[0-9;]*m', '', log)
-    marker = log.rfind('failing tests:')
-    if marker < 0:
-        marker = max(log.rfind('Traceback (most recent call last)'), 0)
-    excerpt = log[marker:][-24000:]
+    failures = [match.start() for match in re.finditer(r'not ok [0-9]+ - ', log)]
+    if failures:
+        excerpt = '\n'.join(log[start:start + 2000] for start in failures[:2])
+    else:
+        # Historical framework output can omit early failures; preserve totals or the terminal error.
+        excerpt = log[-3000:]
     # Keep this a fixed, scoped diagnostic, not a generic URL/log relay. Redact any URLs with credentials.
     excerpt = re.sub(r'https://[^\s"<>]*[?][^\s"<>]*', '[URL with query redacted]', excerpt)
     # GitHub annotations truncate messages at 4 KiB; preserve the complete excerpt in small chunks.

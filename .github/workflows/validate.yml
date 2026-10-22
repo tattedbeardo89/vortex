@@ -140,3 +140,6 @@ jobs:
           key: vortex-desktop-${{ hashFiles('ps5-react/dependencies.lock.json') }}
       - name: Run original framework suite without suppressing inherited failures
         run: xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:framework
+      - name: Print complete framework subprocess logs on failure
+        if: failure()
+        run: find ps5-react/.build -maxdepth 1 -name '*-test.log' -type f -exec cat {} +

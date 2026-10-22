@@ -7,7 +7,7 @@
   "ps5-react/tools/test_network.py": {
     "upstreamSha256": "e0417fb3f50398fe78d7aa2fdccb3ee2da2e25862d3ba39f560a483ad3f7adae",
     "patchedSha256": "2bf9da2f9718f98d3eed32861a0e30699eb8b2f7266465c3dc9f5d12d45be94d",
-    "reason": "Link the Linux standalone network test with the crypto library used by network.cpp. Deterministically inject all three refusal statuses under the fixture lock without depending on client concurrency."
+    "reason": "Link the Linux standalone network test with the crypto library used by network.cpp. Deterministically inject all three refusal statuses under the fixture lock without depending on client concurrency. Cancel validator-less resume fixtures only after a retained completed range, preserving mutation rejection and byte-equality assertions."
   },
   "ps5-react/tools/test_images.py": {
     "upstreamSha256": "ab5f07279677592c0cb16a267b56895531e10c10a341129dc2cea3a379ad4fde",
