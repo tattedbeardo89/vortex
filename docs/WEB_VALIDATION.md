@@ -1,5 +1,19 @@
 # Vortex Web validation record
 
+## Reconciled with merged PR #3
+
+PR #4 now targets `main`. Merge `fc003dc` incorporates main `ac1e332`, preserving framework correction `7ac803e` without history rewriting. Build/test source: `983c66ad8ba1351c3bcdf3878e1945a87a6b9c58`. Later documentation changes do not change production inputs. Raw framework files match merged main; the Web listener remains a generated overlay.
+
+Conflicts were limited to validation workflow steps and BUILDING.md: retain full failure logging, native Web regression and report upload, corrected framework results, and Web build guidance. No catalog/runtime contract hash was refreshed.
+
+Local reconciled-source results: 18 Python and 8 JavaScript Vortex tests; 20 Web JavaScript and 9 Python transport/compatibility tests; 6 historical catalog tests; 17 application tests; frontend build and actual native QuickJS/C++ Web integration passed. The new snapshot-sync regression proves compatible upstream imports preserve Web bytes and framework fixes and changed native hooks fail validation. Catalog parity remains 1,148 (1,009 PS5 / 139 PS4), with 104 fixture homebrew apps; counts are computed, not enforced in application code.
+
+Fresh full framework, Chromium/Firefox/WebKit, native Web and PS5 image/update validation: [run 39846258332](https://github.com/tattedbeardo89/vortex/actions/runs/39846258332). Use its `Vortex-native-validation` artifact for this reconciled source rather than the historical image below. Final statuses and the exact artifact download link are recorded in [PR #4](https://github.com/tattedbeardo89/vortex/pull/4). The packaged Web manifest records frontend and native-server hashes, and receipts/baseline reports retain identity and source/catalog provenance.
+
+Local environment limits: Playwright browser binaries are absent and the download CDN returns HTTP 403; all three browser tests remain enabled in hosted CI. The unchanged archive memory-pressure guard prevents a local complete framework pass, as documented in [the framework investigation](investigations/framework-test-failures.md). Hosted full-suite validation is tracked separately. Physical PS5 testing, real provider transfers, installs and self-update remain unverified. No release, device deployment or PR merge was performed.
+
+## Historical pre-reconciliation evidence
+
 Implementation build source: `1f2fbbd77026a4da4320e23138213bb0ff669da6`, stacked on PR #3. Later documentation and development-watcher locking changes do not change the compiled production extension. The final native build includes the modal shortcut guard. Upstream stays v1.0.8 (`9f90d882771eb87f75579b10f951cc2dbe4daf2a`); catalog tree `e6f05a52c7909f56ad70f1868543192ce083e1d9`. Raw app/framework sources remain unchanged.
 
 | Check | Evidence |
