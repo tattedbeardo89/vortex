@@ -30,6 +30,8 @@ for job in jobs:
     excerpt = log[marker:][-24000:]
     # Keep this a fixed, scoped diagnostic, not a generic URL/log relay. Redact any URLs with credentials.
     excerpt = re.sub(r'https://[^\s"<>]*[?][^\s"<>]*', '[URL with query redacted]', excerpt)
-    message = f"Source job {job}; commit {metadata['head_sha']}\n" + excerpt
-    message = message.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
-    print('::notice title=Requested framework job log::' + message)
+    # GitHub annotations truncate messages at 4 KiB; preserve the complete excerpt in small chunks.
+    for offset in range(0, len(excerpt), 2400):
+        message = f"Source job {job}; commit {metadata['head_sha']}; excerpt offset {offset}\n" + excerpt[offset:offset + 2400]
+        message = message.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+        print('::notice title=Requested framework job log::' + message)
