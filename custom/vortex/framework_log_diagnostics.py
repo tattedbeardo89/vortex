@@ -10,7 +10,7 @@ if not 1 <= len(jobs) <= 4 or not all(re.fullmatch(r'[0-9]+', job) for job in jo
     raise SystemExit('Expected a numeric job ID in the Vortex repository')
 
 def api(job, path):
-    result = subprocess.run(['gh', 'api', f'repos/{repo}/actions/jobs/{job}{path}'], capture_output=True)
+    result = subprocess.run(['gh', 'api', '--allow-escape-sequences', f'repos/{repo}/actions/jobs/{job}{path}'], capture_output=True)
     if result.returncode:
         # gh errors can contain expiring storage URLs; do not publish those credentials.
         detail = re.sub(r'https://\S+', '[URL redacted]', result.stderr.decode(errors='replace'))[:1500]
