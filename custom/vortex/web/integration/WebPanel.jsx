@@ -81,6 +81,7 @@ export function WebPanel() {
     children: jsx(FocusScope, {
       trap: true,
       autoFocus: true,
+      onAction: () => true,
       onBack: () => {
         show(false);
         return true;
