@@ -1,3 +1,4 @@
+import sys
 import importlib.util
 import json
 from pathlib import Path
@@ -6,6 +7,7 @@ import unittest
 from unittest.mock import patch
 
 MODULE = Path(__file__).resolve().parents[1] / 'overlay.py'
+sys.path.insert(0, str(MODULE.parent))
 spec = importlib.util.spec_from_file_location('vortex_overlay', MODULE)
 overlay = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(overlay)

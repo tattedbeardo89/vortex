@@ -6,6 +6,9 @@ from pathlib import Path
 import subprocess
 import sys
 
+sys.path.insert(0,str(Path(__file__).resolve().parent))
+from baseline import describe, SOURCE_PATHS
+
 BRANCH = 'integration/upstream'
 UPSTREAM_URL = 'https://github.com/MyLuxy/overdrive.git'
 
@@ -14,6 +17,8 @@ def git(repo, *args, check=True):
                           stderr=subprocess.STDOUT, check=check)
 
 def integrate(repo, base='origin/main', upstream='upstream/main'):
+    if (Path(repo)/'custom/vortex/upstream-baseline.json').exists():
+        return integrate_snapshot(repo,base,upstream)
     if git(repo,'merge-base','--is-ancestor',upstream,base,check=False).returncode == 0:
         return {'state':'unchanged','tip':git(repo,'rev-parse',upstream).stdout.strip()}
     if git(repo,'status','--porcelain').stdout.strip(): raise RuntimeError('Sync requires a clean checkout')
@@ -32,6 +37,32 @@ def integrate(repo, base='origin/main', upstream='upstream/main'):
     if changed: result.update(state='review', protectedChanges=changed)
     return result
 
+def integrate_snapshot(repo, base, upstream):
+    """Propose a complete application/catalog snapshot; never mix revisions or update main."""
+    repo=Path(repo)
+    manifest=repo/'custom/vortex/upstream-baseline.json'
+    tip=git(repo,'rev-parse',upstream).stdout.strip()
+    if git(repo,'status','--porcelain').stdout.strip():raise RuntimeError('Sync requires a clean checkout')
+    current=json.loads(manifest.read_text())
+    if current['commit']==tip and git(repo,'merge-base','--is-ancestor',base,'HEAD',check=False).returncode==0:
+        return {'state':'unchanged','tip':tip,'baseline':current}
+    attempt=git(repo,'merge','--no-edit',base,check=False)
+    if attempt.returncode:
+        conflicts=git(repo,'diff','--name-only','--diff-filter=U').stdout.splitlines()
+        if git(repo,'rev-parse','--verify','MERGE_HEAD',check=False).returncode==0:git(repo,'merge','--abort')
+        return {'state':'conflict','tip':tip,'conflicts':conflicts,'detail':attempt.stdout[-5000:]}
+    previous=json.loads(manifest.read_text())
+    candidate=describe(tip,root=repo)
+    # Restore the whole application, framework and upstream tools as one reviewed unit.
+    # Keep Vortex workflows, packaging wrappers and diagnostics outside that source snapshot.
+    git(repo,'restore','--source='+tip,'--staged','--worktree','--',*SOURCE_PATHS)
+    manifest.write_text(json.dumps(candidate,indent=2)+'\n')
+    git(repo,'add','--','custom/vortex/upstream-baseline.json')
+    if git(repo,'diff','--cached','--quiet',check=False).returncode:
+        git(repo,'commit','-m','Propose upstream '+candidate['sourceVersion']+' source/catalog '+tip[:12])
+    return {'state':'merged','tip':tip,'previousBaseline':previous,'baseline':candidate,
+            'policy':'Review only; source and catalog advance together. Theme/contracts require compatibility checks.'}
+
 def gh(repo,*args,check=True):
     return subprocess.run(['gh',*args],cwd=repo,text=True,capture_output=True,check=check)
 
@@ -44,7 +75,8 @@ def main():
         git(repo,'remote','add','upstream',UPSTREAM_URL)
     if git(repo,'remote','get-url','upstream').stdout.strip()!=UPSTREAM_URL: raise RuntimeError('Unexpected upstream remote')
     git(repo,'fetch','upstream','main')
-    if git(repo,'merge-base','--is-ancestor','upstream/main','origin/main',check=False).returncode == 0:
+    selected=json.loads(git(repo,'show','origin/main:custom/vortex/upstream-baseline.json').stdout)
+    if selected['commit']==git(repo,'rev-parse','upstream/main').stdout.strip():
         print('Upstream already integrated; no branch or PR changes'); return
     git(repo,'config','user.name','Vortex upstream sync')
     git(repo,'config','user.email','vortex-sync@users.noreply.github.com')
@@ -58,7 +90,7 @@ def main():
         env=dict(os.environ)
         for key in ('GH_TOKEN','GITHUB_TOKEN'): env.pop(key,None)
         checks=[]
-        for command in ([sys.executable,'custom/vortex/overlay.py','--check'],['npm','run','test:vortex'],['npm','run','test:app']):
+        for command in ([sys.executable,'custom/vortex/overlay.py','--check'],['npm','run','test:vortex'],['npm','run','test:app'],['npm','run','test:catalog']):
             run=subprocess.run(command,cwd=repo,env=env,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
             checks.append({'command':command,'exit':run.returncode,'output':run.stdout[-5000:]})
         result['checks']=checks
@@ -91,6 +123,6 @@ def main():
     else:
         gh(repo,'pr','create','--repo',brand['repository'],'--base','main','--head',BRANCH,
            '--draft','--title','Integrate upstream Overdrive updates','--body-file',str(pr_body))
-    if result['state']!='merged': raise SystemExit('Upstream integration needs review: '+result['state'])
+    if result['state'] not in ('merged','unchanged'): raise SystemExit('Upstream integration needs review: '+result['state'])
 
 if __name__=='__main__': main()

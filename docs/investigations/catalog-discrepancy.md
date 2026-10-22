@@ -1,5 +1,7 @@
 # Commercial catalog discrepancy investigation — 2026-10-21
 
+> Historical investigation of the first Vortex build. The user subsequently selected published Overdrive v1.0.8 as the initial branding-only baseline; see [the implementation report](../BRANDING_ONLY.md). New builds intentionally reproduce 1,148 by using that complete source snapshot, without custom filters. The newer catalog findings below remain valid.
+
 ## Finding and decision
 
 Both reported console counts reproduce exactly using the real application modules, with no persistent catalog update and no browsing filters. Published Overdrive **v1.0.8** produces **1,148 = 1,009 PS5 + 139 PS4**. The source used by the tested Vortex build, and current upstream source, produce **2,105 = 1,123 PS5 + 982 PS4**. Vortex is not missing upstream's availability filter. No commercial filtering or catalog-data correction is justified; legitimate upstream additions are preserved.
@@ -93,15 +95,15 @@ Requires Git history, Python 3.12+, Node 22+, and the existing React dependency 
 
 ```sh
 git fetch --no-tags https://github.com/MyLuxy/overdrive.git c7e962db9a971a407f61d70473fade417de735ec
-npm run diagnose:catalog
+npm run diagnose:catalog-history
 npm run test:catalog
 ```
 
 The default full JSON is `.vortex/catalog-comparison.json`: source hashes and commits, platform counts at each stage, hidden/paused/source-less categories, duplicate IDs, cross-platform work groups, release-row eligibility, update application/logs, complete per-ID before/after records, and exact added/removed IDs. The compact committed [measured summary](catalog-discrepancy-summary.json) records the investigation snapshot. To inspect future upstream changes, pass `--upstream upstream/main`; the default is pinned for reproducibility.
 
 ```sh
-npm run diagnose:catalog -- --catalog-update /path/to/copied/catalog-update.json --output .vortex/with-cache.json
-npm run diagnose:catalog -- --homebrew-cache /path/to/copied/homebrew.json
+npm run diagnose:catalog-history -- --catalog-update /path/to/copied/catalog-update.json --output .vortex/with-cache.json
+npm run diagnose:catalog-history -- --homebrew-cache /path/to/copied/homebrew.json
 ```
 
 Only use copies of console cache files. Diagnostics deliberately prohibit HTTP and filesystem mutations; even malformed cache quarantine attempts are blocked. Source extraction includes only JS/JSON text; no binary images are generated. Supplied catalog caches are evaluated separately against each snapshot's real compatibility rules. A supplied homebrew cache is processed by that snapshot's real homebrew loader.

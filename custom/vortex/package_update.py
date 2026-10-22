@@ -4,6 +4,7 @@ import argparse
 import json
 import zipfile
 from overlay import ROOT, configuration
+from baseline import selected
 
 MANIFEST = 'vortex-update.json'
 
@@ -16,6 +17,8 @@ def verify_package(path):
         expected = {key: brand[key] for key in ('name', 'repository', 'titleId', 'contentId', 'version')}
         if any(manifest.get(key) != value for key, value in expected.items()) or manifest.get('format') != 1 or manifest.get('image') != brand['artifact']:
             raise ValueError('Vortex update manifest identity mismatch')
+        if manifest.get('upstream') != selected():
+            raise ValueError('Vortex update source/catalog baseline provenance mismatch')
         info = package.getinfo(brand['artifact'])
         if info.file_size != manifest['size'] or info.file_size < 1024 ** 2 or info.file_size % 512:
             raise ValueError('Invalid exFAT image size')
@@ -36,7 +39,7 @@ def main():
         validate_built(brand)
         image = ROOT / brand['artifact']
         manifest = {'format': 1, **{k: brand[k] for k in ('name', 'repository', 'titleId', 'contentId', 'version')},
-                    'image': image.name, 'size': image.stat().st_size}
+                    'image': image.name, 'size': image.stat().st_size, 'upstream': selected()}
         with image.open('rb') as stream:
             if stream.read(11)[3:] != b'EXFAT   ': raise ValueError('Not an exFAT image')
         manifest_path = ROOT / MANIFEST

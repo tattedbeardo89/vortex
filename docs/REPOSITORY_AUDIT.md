@@ -1,5 +1,7 @@
 # Repository audit before Vortex changes
 
+> Historical initial-fork audit of the newer upstream baseline. The active source/catalog selection is now `custom/vortex/upstream-baseline.json` (published v1.0.8); see [BRANDING_ONLY.md](BRANDING_ONLY.md). The initial inventory remains useful provenance, not a declaration of the active runtime source.
+
 Baseline: see `custom/vortex/upstream-inventory.json` for the exact commit, tracked-file count and every text file containing Overdrive or its title ID. Inspected all tracked paths, source/documentation references, dependency locks, workflows and package scripts. Generated caches and vendored downloaded checkouts are not project source.
 
 ## Structure and identity

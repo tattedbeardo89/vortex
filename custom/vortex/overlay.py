@@ -8,6 +8,8 @@ import re
 import shutil
 import subprocess
 import tempfile
+from baseline import verify as verify_baseline
+from theme import apply_theme, theme_configuration, verify_theme
 
 ROOT = Path(__file__).resolve().parents[2]
 CUSTOM = ROOT / 'custom/vortex'
@@ -28,6 +30,7 @@ def configuration():
         raise ValueError('Review repository policy before changing release/upstream identity')
     if brand['artifact'] != 'Vortex.exfat' or brand['updateAsset'] != 'update.zip':
         raise ValueError('Vortex artifact naming contract changed')
+    brand['theme'] = theme_configuration()['tokens']
     return brand
 
 def verify_contracts():
@@ -57,7 +60,9 @@ def audit_generated(stage):
 
 def prepare():
     brand = configuration()
+    baseline = verify_baseline()
     contracts = verify_contracts()
+    verify_theme()
     OUTPUT.parent.mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='overlay-', dir=OUTPUT.parent) as tmp:
         stage = Path(tmp) / 'vortex'
@@ -87,8 +92,8 @@ def prepare():
         for source, destination in [('Logo.jsx', 'ui/Logo.jsx'), ('Splash.jsx', 'ui/Splash.jsx'),
                                     ('install-location.js', 'state/install-location.js'), ('update-policy.js', 'state/vortex-update-policy.js')]:
             shutil.copyfile(CUSTOM / 'runtime' / source, stage / destination)
+        themed = apply_theme(stage)
         (stage / 'vortex-brand.js').write_text('export const BRAND = Object.freeze(' + json.dumps(brand, indent=2) + ');\n')
-        (stage / 'ui/colors.js').write_text('export const colors = ' + json.dumps(brand['theme'], indent=2) + ';\n')
         for key, filename in [('icon', 'icon0.png'), ('selectedBackground', 'pic0.dds'), ('launchBackground', 'pic1.dds')]:
             asset = (ROOT / brand['assets'][key]).resolve()
             if not asset.is_relative_to(ROOT) or not asset.is_file():
@@ -99,12 +104,13 @@ def prepare():
         config = json.loads((stage / 'app.json').read_text())
         major, minor, patch = map(int, brand['version'].split('.'))
         shutil.copyfile(CUSTOM / 'NOTICE.txt', stage / 'VORTEX-NOTICE.txt')
-        config['resources'] = [*config.get('resources', []), 'VORTEX-NOTICE.txt']
+        (stage / 'VORTEX-BASELINE.json').write_text(json.dumps(baseline, indent=2) + '\n')
+        config['resources'] = [*config.get('resources', []), 'VORTEX-NOTICE.txt', 'VORTEX-BASELINE.json']
         config.update(name=brand['name'], titleId=brand['titleId'], contentId=brand['contentId'], version=f'{major:02}.{minor:03}.{patch:03}')
         (stage / 'app.json').write_text(json.dumps(config, indent=2) + '\n')
         report = {'format': 1, 'brand': brand['name'], 'titleId': brand['titleId'], 'repository': brand['repository'],
                   'version': brand['version'], 'upstreamVersion': re.search(r'"([0-9.]+)"', upstream_version)[1],
-                  'customizedSources': contracts}
+                  'customizedSources': contracts, 'upstreamBaseline': baseline, 'themedSources': themed}
         (stage / '.vortex-generated.json').write_text(json.dumps(report, indent=2) + '\n')
         audit_generated(stage)
         if OUTPUT.exists():
@@ -123,6 +129,6 @@ if __name__ == '__main__':
     parser.add_argument('--check', action='store_true', help='Check source contracts/config without writing')
     args = parser.parse_args()
     if args.check:
-        configuration(); verify_contracts(); print('Vortex configuration and upstream contracts valid')
+        configuration(); verify_baseline(); verify_contracts(); verify_theme(); print('Vortex configuration and upstream contracts valid')
     else:
         prepare()

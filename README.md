@@ -2,15 +2,17 @@
 
 **Vortex - PS5 Homebrew and Game Store**
 
-A personal, independently branded application based on [Overdrive by MyLuxy](https://github.com/MyLuxy/overdrive), built with [PS5 React](https://github.com/half144/ps5-react). Vortex retains catalog browsing, homebrew, search, favorites, downloads, storage tools, controller navigation and all 18 languages.
+A branding-only, Seerr-themed fork based on [Overdrive by MyLuxy](https://github.com/MyLuxy/overdrive), built with [PS5 React](https://github.com/half144/ps5-react). Vortex retains catalog browsing, homebrew, search, favorites, downloads, storage tools, controller navigation and all 18 languages.
 
 Repository and releases: **https://github.com/tattedbeardo89/vortex**. The originally proposed vortex-ps5 repository was unavailable; the owner selected this existing repository instead.
+
+The selected upstream baseline is **published Overdrive v1.0.8**, commit `9f90d882771eb87f75579b10f951cc2dbe4daf2a`. Vortex 1.0.1 reproduces its real catalog: **1,148 total / 1,009 PS5 / 139 PS4**, and 104 visible homebrew apps in the recorded real API snapshot. Counts are measured, not enforced. See the [baseline/parity report](docs/BRANDING_ONLY.md).
 
 ## Install alongside Overdrive
 
 Download **Vortex.exfat** from a Vortex release. Place it in `homebrew/Vortex.exfat` on an exFAT USB drive, or `/data/homebrew/Vortex.exfat` on the console. ShadowMount+ and the supported console prerequisites remain necessary; see the [original installation documentation](docs/UPSTREAM_README.md#install-in-four-steps).
 
-Vortex uses **PPSA99189**, content **UP9000-PPSA99189_00-VORTEXPS50000000**, and a separate data/queue path. Overdrive remains PPSA99058. Do not rename or overwrite Overdrive.exfat. The new ID is structurally valid and unused in this source tree, not a Sony-assigned or globally reserved ID. Actual console installation/launch and coexistence still need hardware validation. Existing home-screen raster artwork is temporarily retained; the running UI uses a Vortex text identity. See [artwork replacements](ASSET_REPLACEMENT_GUIDE.md).
+Vortex uses **PPSA99189**, content **UP9000-PPSA99189_00-VORTEXPS50000000**, and a separate data/queue path. Overdrive remains PPSA99058. Do not rename or overwrite Overdrive.exfat. The new ID is structurally valid and unused in this source tree, not a Sony-assigned or globally reserved ID. The prior Vortex build was user-confirmed to boot; this new 1.0.8-baseline artifact requires separate hardware validation. Existing home-screen raster artwork is temporarily retained; the running UI uses a Vortex text identity. See [artwork replacements](ASSET_REPLACEMENT_GUIDE.md).
 
 ## Develop and build
 
@@ -29,9 +31,9 @@ Use LLVM 18 (including lld), Python 3.12+, pinned Pillow and locked npm dependen
 
 ## Maintain the fork
 
-Vortex customization lives under [`custom/vortex/`](custom/vortex/), not throughout the upstream app. The overlay verifies reviewed source hashes, applies two focused updater patches, replaces a few branding components and generates independent metadata/version/theme files. It refuses unreviewed changes to customized upstream files.
+Vortex customization lives under [`custom/vortex/`](custom/vortex/), not throughout the upstream app. The overlay verifies reviewed source hashes, applies two focused updater patches, preserves upstream component structure while replacing vector/name branding and generates independent metadata/version/theme files. It refuses unreviewed changes to customized upstream files.
 
-Daily synchronization opens or updates one draft integration PR; it never resets main or publishes a release. Manual Vortex builds produce reviewable draft releases only. Upstream and Vortex release versions are separate; catalog updates still use the upstream version and existing catalog service.
+Daily synchronization opens or updates one draft integration PR; it never resets main or publishes a release. Manual Vortex builds default to artifact-only output; optional release creation is draft-only. Upstream and Vortex release versions are separate. Source and catalog revisions advance together in reviewed integration PRs. This v1.0.8 baseline has no runtime commercial catalog-update consumer, exactly as upstream.
 
 - [Branding and theme](docs/BRANDING.md)
 - [Upstream synchronization and conflict review](docs/UPSTREAM_SYNC.md)

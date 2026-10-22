@@ -1,13 +1,5 @@
 # Changelog
 
-## Unreleased — requests beside a download
-
-- `Http.request` (and every task without a file destination) runs on a network thread of its own,
-  apart from file downloads. The one service ran its tasks one at a time, so while a download went on
-  for minutes every request waited behind it: the app's JSON, ShadowMount+'s local API, a host's page
-  for the next download. Task ids stay unique across both; only the download service starts and stops
-  libSceNet, and only it holds the disk buffers and writer threads.
-
 ## Unreleased — traditional Chinese text
 
 - Add the `chinese-traditional` text font: Noto Sans TC 2.004, subset to Big5 level 1 (5,401 hanzi
@@ -24,10 +16,6 @@
   until the download ended (122 s and 341 s in a tester's log, issue #71), and a probe writing that way
   reproduced it (18 s at 115 MiB/s, a few ms at 100 MiB/s).
 - Each async inspection logs when it is queued and when it is done, with the time it waited and took.
-- overdrive treats optional header inspection failure as unknown result. (the download
-  finishes are still downloaded. multi-part archives will resort to
-  extract-on-all-volumes-complete). header outright refusal will still fail the
-  archive. archive contents will still be validated for extraction preflight.
 
 ## Unreleased — image registry headroom
 

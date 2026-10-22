@@ -48,8 +48,10 @@ class CatalogRegressionTests(unittest.TestCase):
         env.pop('CATALOG_UPDATE_FILE',None)
         env.pop('CATALOG_HOMEBREW_FILE',None)
         actual=json.loads(subprocess.check_output(['node',str(ROOT/'tools/catalog-diagnostics/evaluate.mjs')],env=env))
-        self.assertEqual(actual['visible'],self.new['visible'])
-        self.assertEqual(actual['entries'],self.new['entries'])
+        baseline=json.loads((ROOT/'custom/vortex/upstream-baseline.json').read_text())
+        expected=evaluate(baseline['commit'])
+        self.assertEqual(actual['visible'],expected['visible'])
+        self.assertEqual(actual['entries'],expected['entries'])
         self.assertEqual(actual['visibleWithoutAnyEditionReleaseRows'],[])
 
     def test_paused_sibling_policy_change_not_responsible_for_ps4_growth(self):

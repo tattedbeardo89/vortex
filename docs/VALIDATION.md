@@ -1,5 +1,7 @@
 # Vortex implementation validation
 
+Current branding-only baseline: see [BRANDING_ONLY.md](BRANDING_ONLY.md) and [v1.0.8 real-module parity](investigations/v108-parity.json). The earlier validation evidence below applies to the original 1.0.0/newer-upstream build, not the new artifact. Current checks: 12 Python customization/parity/theme/sync tests and 8 JS updater/version tests pass; historical catalog tests 6 pass; original v1.0.8 application tests 17 pass. The unmodified v1.0.8 framework JS suite still has its two inherited browser-capture/LAN failures (134 pass / 2 fail). Native/preview and artifact evidence for the new build is recorded in the implementation PR.
+
 Validated in the prepared Linux cloud environment. No PS5 was contacted or deployed to, and no binary artwork or screenshots were generated for this implementation.
 
 | Check | Result |

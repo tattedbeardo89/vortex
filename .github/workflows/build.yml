@@ -5,7 +5,7 @@ on:
       create_draft:
         description: Create or update a draft release after verification (never publishes)
         type: boolean
-        default: true
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -39,6 +39,7 @@ jobs:
         run: |
           npm run test:vortex
           npm run test:app
+          npm run test:parity
       - name: Build and package Vortex
         run: npm run build
       - name: Verify update package and version consistency
@@ -47,7 +48,7 @@ jobs:
         run: |
           mkdir -p .vortex/release
           cp Vortex.exfat update.zip vortex-update.json .vortex/release/
-          cp .vortex/validation.json ps5-react/dist/PPSA99189.receipt.json .vortex/release/
+          cp .vortex/validation.json .vortex/catalog-parity.json custom/vortex/upstream-baseline.json ps5-react/dist/PPSA99189.receipt.json .vortex/release/
           git archive --format=tar --output=.vortex/release/Vortex-source.tar HEAD
       - uses: actions/upload-artifact@v4
         with:

@@ -1,0 +1,117 @@
+{
+  "format": 1,
+  "baseline": {
+    "format": 1,
+    "repository": "MyLuxy/overdrive",
+    "ref": "v1.0.8",
+    "commit": "9f90d882771eb87f75579b10f951cc2dbe4daf2a",
+    "sourceVersion": "1.0.8",
+    "sourcePaths": [
+      "app",
+      "ps5-react",
+      "tools",
+      ":(exclude)tools/catalog-diagnostics"
+    ],
+    "appTree": "07fc5dab5f57ffbf4646b13f6df106953203025d",
+    "frameworkTree": "9d0fa31212204414f673724c3bba5f6d4213eb57",
+    "catalog": {
+      "dataRevision": "e6f05a52c7909f56ad70f1868543192ce083e1d9",
+      "moduleSha256": "2b2abc88c8665b28407c9032b61dd39b08d993a87f66c9cc88b1f0738a4ced07",
+      "schema": "upstream JavaScript catalog + JSON releases/pages",
+      "schemaVersion": null,
+      "schemaVersionReason": "No separately numbered bundled schema in this upstream version",
+      "updateConsumer": false,
+      "updateCompatibilityVersion": null
+    }
+  },
+  "vortexVersion": "1.0.1",
+  "upstreamVersion": "1.0.8",
+  "parityFields": [
+    "bundled",
+    "effective",
+    "update",
+    "visible",
+    "hidden",
+    "visibleByEditionFallback",
+    "retainedTwins",
+    "duplicateTitleIds",
+    "alternateWorks",
+    "eligibleWorkIds",
+    "entries",
+    "visibleWithoutOwnReleaseRows",
+    "visibleWithoutAnyEditionReleaseRows",
+    "homebrewCount",
+    "homebrewEntries"
+  ],
+  "parity": true,
+  "visible": {
+    "total": 1148,
+    "ps5": 1009,
+    "ps4": 139
+  },
+  "hidden": {
+    "total": 581,
+    "ps5": 52,
+    "ps4": 529
+  },
+  "bundled": {
+    "games": {
+      "entries": {
+        "total": 1729,
+        "ps5": 1061,
+        "ps4": 668
+      },
+      "withEligibleDeclaredProvider": {
+        "total": 1148,
+        "ps5": 1009,
+        "ps4": 139
+      },
+      "withoutProviders": {
+        "total": 533,
+        "ps5": 15,
+        "ps4": 518
+      },
+      "onlyPausedProviders": {
+        "total": 48,
+        "ps5": 37,
+        "ps4": 11
+      }
+    },
+    "twins": {
+      "entries": {
+        "total": 221,
+        "ps5": 219,
+        "ps4": 2
+      },
+      "withEligibleDeclaredProvider": {
+        "total": 200,
+        "ps5": 200,
+        "ps4": 0
+      },
+      "withoutProviders": {
+        "total": 3,
+        "ps5": 1,
+        "ps4": 2
+      },
+      "onlyPausedProviders": {
+        "total": 18,
+        "ps5": 18,
+        "ps4": 0
+      }
+    }
+  },
+  "retainedTwins": {
+    "total": 200,
+    "ps5": 200,
+    "ps4": 0
+  },
+  "update": {
+    "supported": false,
+    "appliedVersion": null,
+    "generated": null
+  },
+  "homebrewCount": 104,
+  "homebrewCacheSha256": "31d197462f19e3d5efab016189d543d4e0dc95c93d28e85d9e492f8dc5d4c094",
+  "homebrewNote": "Same real JSON cache evaluated by both modules; defaults to the recorded public API snapshot, not a frozen runtime catalog.",
+  "availability": "Declared-provider/release-row eligibility only; remote file reachability not tested"
+}

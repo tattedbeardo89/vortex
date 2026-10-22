@@ -54,7 +54,8 @@ jobs:
           include-hidden-files: true
           path: |
             .vortex/validation.json
-            .vortex/catalog-comparison.json
+            .vortex/catalog-parity.json
+            custom/vortex/upstream-baseline.json
   native-build:
     runs-on: ubuntu-24.04
     steps:
