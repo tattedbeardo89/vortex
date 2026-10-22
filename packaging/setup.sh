@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Installs everything a fresh clone needs to preview, test and build Overdrive.
+# Installs everything a fresh clone needs to preview, test and build Vortex.
 # Run it once, from the repository root (never on its own through npm install):
 #
 #   npm run setup
@@ -21,7 +21,7 @@ Linux)
     sudo apt-get install -y \
         build-essential cmake clang ninja-build nasm pkg-config git curl unzip zip zstd \
         libsdl2-dev libgl-dev libcurl4-openssl-dev libarchive-dev libarchive-tools liblzma-dev libssl-dev zlib1g-dev \
-        clang-18 llvm-18 llvm-18-dev exfatprogs \
+        clang-18 lld-18 llvm-18 llvm-18-dev exfatprogs \
         nodejs npm python3 python3-pil
     ;;
 Darwin)
@@ -46,5 +46,5 @@ for tool in cmake clang ninja nasm node mkfs.exfat; do
     printf '%-10s %s\n' "$tool" "$(command -v "$tool" || echo MISSING)"
 done
 echo
-echo "Ready. Next: npm run preview (desktop window), npm run build (Overdrive.exfat)."
+echo "Ready. Next: npm run preview (desktop window), npm run build (Vortex.exfat)."
 echo "The first preview and the first build download and compile the pinned dependencies; that takes a while."

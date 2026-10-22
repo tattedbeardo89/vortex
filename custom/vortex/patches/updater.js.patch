@@ -1,0 +1,75 @@
+--- a/state/updater.js
++++ b/state/updater.js
+@@ -2,6 +2,8 @@
+ // reconstructed from the esbuild bundle in eboot.bin
+ 
+ import { formatBytes } from './size.js';
++import {BRAND} from '../vortex-brand.js';
++import {FEED, assertUpdate, newer, releaseUpdate, validateImage} from './vortex-update-policy.js';
+ 
+   var SECTOR = 512;
+   var MIN_IMAGE_BYTES = 1024 ** 2;
+@@ -10,28 +12,18 @@
+   var STUCK_LAUNCHES = 2;
+   var BUDGET_MS = 8;
+   var CHANGES_PER_FRAME = 8;
+-  var log = (message) => console.log(`overdrive: update ${message}`);
++  var log = (message) => console.log(`vortex: update ${message}`);
+   var ImageReplaceError = class extends Error {
+   };
+-  function newer(a, b) {
+-    const parts = (version2) => version2.replace(/^v/, "").split(".").map(Number);
+-    const [x, y] = [parts(a), parts(b)];
+-    for (let i = 0; i < Math.max(x.length, y.length); i++)
+-      if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0);
+-    return false;
+-  }
+   function createUpdater({ http, downloads, archives, fs, version: version2, feed, asset, installDir, image, workDir, marker, now = Date.now }) {
++    if (feed !== FEED) throw new Error("Vortex update feed cannot be overridden");
+     async function check() {
+       const installed = installedImage();
+       if (installed) return installed;
+-      const response = await http.request(feed, { headers: { Accept: "application/vnd.github+json", "User-Agent": "Overdrive" }, maxBytes: 1024 ** 2 });
++      const response = await http.request(feed, { headers: { Accept: "application/vnd.github+json", "User-Agent": BRAND.name }, maxBytes: 1024 ** 2 });
+       if (!response.ok) throw new Error(`Update feed ${feed} answered HTTP ${response.status}`);
+       const release = await response.json();
+-      if (!release.tag_name || !newer(release.tag_name, version2)) return null;
+-      const file = (release.assets || []).find((item) => item.name === asset);
+-      const sha256 = /^sha256:([0-9a-f]{64})$/i.exec(file?.digest || "")?.[1];
+-      if (!file || !sha256) return null;
+-      return { version: release.tag_name.replace(/^v/, ""), notes: release.body || "", url: file.browser_download_url, size: file.size, sha256 };
++      return releaseUpdate(release, version2, asset);
+     }
+     const entriesOf = (dir2) => fs.readDir(dir2).filter((entry2) => !entry2.name.startsWith(".ps5-react-"));
+     function contentOf(dir2) {
+@@ -94,7 +86,7 @@
+       try {
+         const recorded = JSON.parse(fs.readFile(marker));
+         const file = fs.stat(recorded.image);
+-        if (newer(recorded.version, version2) && file?.size === recorded.size && Math.abs(file.modified - recorded.modified) < MTIME_SLACK_MS)
++        if (recorded.image === image && newer(recorded.version, version2) && file?.size === recorded.size && Math.abs(file.modified - recorded.modified) < MTIME_SLACK_MS)
+           pending2 = recorded;
+       } catch (error2) {
+         log(`marker ignored: ${error2.message}`);
+@@ -118,9 +110,7 @@
+     }
+     function replaceImage(extracted, update) {
+       const entries2 = entriesOf(extracted);
+-      const [entry2] = entries2;
+-      if (entries2.length !== 1 || !entry2.isFile || !entry2.name.endsWith(".exfat") || entry2.size < MIN_IMAGE_BYTES || entry2.size % SECTOR)
+-        throw new Error(`The update holds ${entries2.map((item) => item.name).join(", ") || "nothing"} instead of one exFAT image`);
++      const entry2 = validateImage(entries2, name => fs.readFile(`${extracted}/${name}`), update);
+       const file = `${extracted}/${entry2.name}`;
+       try {
+         fs.chmod(file, 511);
+@@ -171,7 +161,9 @@
+     }
+     async function install(update, onProgress = () => {
+     }) {
+-      const target = image ?? installDir;
++      assertUpdate(update);
++      if (!image || !image.endsWith("/" + BRAND.artifact)) throw new Error("Vortex automatic updates require a Vortex image installation");
++      const target = image;
+       if (!fs.exists(target)) throw new Error(`The app is not installed at ${target}`);
+       await cleaning;
+       await tidy();

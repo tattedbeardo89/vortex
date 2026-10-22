@@ -3,7 +3,6 @@
 
 import { features, games, twins } from '../data/catalog.js';
 import { formatDate2, formatNumber2, t } from '../i18n/core.js';
-import { applyUpdate, loadUpdate } from './catalog-update.js';
 import { getHomebrew, homebrewApps, relatedHomebrew } from './homebrew.js';
 import { createPageCache } from './page-cache.js';
 import { pausedFilter } from './paused-hosts.js';
@@ -12,25 +11,8 @@ import { FileSystem, Image } from '@ps5-react/core';
 
   var COVER_WIDTH = 440;
   var coverSize = (url) => url.startsWith("https://image.api.playstation.com/") ? url.replace(/([?&]w=)\d+/, `$1${COVER_WIDTH}`) : url;
-  // The nightly catalog update the last launch kept (catalog-update.js), applied before anything below
-  // reads the lists; its release and page files are read in place of the build's.
-  var updated = (() => {
-    try {
-      const update = loadUpdate();
-      return update ? applyUpdate(update, games, twins) : /* @__PURE__ */ new Map();
-    } catch (error2) {
-      console.log(`[catalog-update] not applied: ${error2.message}`);
-      return /* @__PURE__ */ new Map();
-    }
-  })();
-  var dataFileText = (path) => {
-    if (!updated.has(path)) return FileSystem.readFile(`/app0/${path}`);
-    const text = updated.get(path);
-    if (text === null) throw new Error("removed by the catalog update");
-    return text;
-  };
-  var releaseCache = createReleaseCache(dataFileText);
-  var pageCache = createPageCache(dataFileText);
+  var releaseCache = createReleaseCache((path) => FileSystem.readFile(`/app0/${path}`));
+  var pageCache = createPageCache((path) => FileSystem.readFile(`/app0/${path}`));
   var NO_PAGE = { about: [], shots: [], summary: "" };
   var SYNONYMS = {
     "Role Playing Game (RPG)": "RPG",
@@ -71,15 +53,13 @@ import { FileSystem, Image } from '@ps5-react/core';
   };
   // A game whose every host is paused (paused-hosts.js) leaves the shared lists in place, so no screen
   // shows a game with nothing to download. So does one with no source at all (2026-10-17: 563 games,
-  // nearly all PS4, whose only links sit in Archive.org collections now restricted). Either stays when
-  // another edition of it can be downloaded, which its Download button then offers (2026-10-21: the
-  // PS5 editions the importers add as twins, of PS4 games such as Don't Starve Together, whose only
-  // host is MediaFire); an edition with no source is never offered. The data stays: a game that gains
-  // a source shows again. The lists are the data module's own arrays, which every screen reads after
-  // this module has run.
+  // nearly all PS4, whose only links sit in Archive.org collections now restricted), unless another
+  // edition of it can be downloaded, which its Download button then offers; an edition with no source
+  // is never offered. The data stays: a game that gains a source shows again. The lists are the data
+  // module's own arrays, which every screen reads after this module has run.
   var playable = (game) => game.providers?.length > 0 && !game.providers.every(pausedFilter);
   var playableWorks = new Set([...games, ...twins].filter((game) => playable(game) && game.work != null).map((game) => game.work));
-  var hidden = (game, listed2) => !playable(game) && (!listed2 || !playableWorks.has(game.work));
+  var hidden = (game, listed2) => game.providers?.length ? !playable(game) : !listed2 || !playableWorks.has(game.work);
   for (const list of [games, twins])
     for (let index = list.length - 1; index >= 0; index--)
       if (hidden(list[index], list === games)) list.splice(index, 1);
@@ -95,10 +75,6 @@ import { FileSystem, Image } from '@ps5-react/core';
   for (const game of entries) if (game.work) editionsByWork.set(game.work, [...editionsByWork.get(game.work) ?? [], game]);
   var listed = new Set(games);
   for (const game of entries) game.platforms = [...new Set(editionsOf(game).map((edition2) => edition2.platform))].sort();
-  // When a game reached Overdrive ("added", which the importers write from 2026-10-21 on): its own date
-  // or its newest edition's, so a PS5 edition added to a PS4 game brings the game back among the new.
-  var addedOn = new Map(entries.map((game) => [game, editionsOf(game).reduce((last, edition2) => (edition2.added ?? "") > last ? edition2.added : last, "")]));
-  var addedAt = (game) => addedOn.get(game) ?? "";
   function editionsOf(game) {
     return [...editionsByWork.get(game.work) ?? [game]].sort((a, b) => b.platform.localeCompare(a.platform) || Number(listed.has(b)) - Number(listed.has(a)) || a.titleId.localeCompare(b.titleId));
   }
@@ -121,8 +97,6 @@ import { FileSystem, Image } from '@ps5-react/core';
   var SORTS = [
     // New releases first: the library's sort menu opens on it.
     { id: "newest", compare: (a, b) => b.releaseDate.localeCompare(a.releaseDate) },
-    // Recently added, the "Recently added" row's library: the games added the same day, newest release first.
-    { id: "added", compare: (a, b) => addedAt(b).localeCompare(addedAt(a)) || b.releaseDate.localeCompare(a.releaseDate) },
     // Most popular puts the games Archive.org serves first: the app downloads them fastest.
     { id: "relevance", compare: (a, b) => fromArchive(b) - fromArchive(a) || b.recommendations - a.recommendations },
     { id: "rating", compare: (a, b) => (b.metacritic ?? 0) - (a.metacritic ?? 0) },
@@ -198,14 +172,6 @@ import { FileSystem, Image } from '@ps5-react/core';
       has: (game, value) => game.genres.includes(value)
     },
     { key: "feature", options: named(features, "feature"), has: (game, value) => game.features.includes(value) },
-    // The VR headset a game plays on (issue #92): "vr", which tools/vr-games.py writes, on the game or
-    // on one of its editions, so a PS4 game whose PS5 edition is for PS VR2 is found by either.
-    {
-      key: "vr",
-      any: true,
-      options: [{ value: "psvr", name: "PS VR" }, { value: "psvr2", name: "PS VR2" }],
-      has: (game, value) => editionsOf(game).some((edition2) => edition2.vr?.includes(value))
-    },
     {
       key: "release",
       any: true,
@@ -236,44 +202,16 @@ import { FileSystem, Image } from '@ps5-react/core';
   var activeCount = (filters) => FACETS.reduce((sum, facet) => sum + filters[facet.key].length, Number(filters.wishlist));
   var toggleValue = (list, value) => list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
   var passes = (game, facet, picked) => !picked.length || (facet.any ? picked.some((value) => facet.has(game, value)) : picked.every((value) => facet.has(game, value)));
-  function matching({ filters, query, wishlist }) {
+  function matching({ filters, query, wishlist }, skip) {
     const q = query.trim().toLowerCase();
     // Favorites can hold homebrew apps too; every other list is the game catalog's.
     const pool = filters.wishlist ? [...games, ...homebrewApps()] : games;
-    return pool.filter((game) => (!q || `${game.title} ${game.developer} ${game.publisher}`.toLowerCase().includes(q)) && FACETS.every((facet) => passes(game, facet, filters[facet.key])) && (!filters.wishlist || wishlist.includes(game.id)));
+    return pool.filter((game) => (!q || `${game.title} ${game.developer} ${game.publisher}`.toLowerCase().includes(q)) && FACETS.every((facet) => facet === skip || passes(game, facet, filters[facet.key])) && (!filters.wishlist || wishlist.includes(game.id)));
   }
   var filterGames = (state) => matching(state);
-  // Number each facet and corresponding games, but don't re-filter the catalog for every possibility.
-  function facetSummary({ filters, query, wishlist }) {
-    const counts = Object.fromEntries(FACETS.map((facet) => [
-      facet.key, Object.fromEntries(facet.options.map(({ value }) => [value, 0]))
-    ]));
-    const q = query.trim().toLowerCase();
-    const favorites = filters.wishlist ? new Set(wishlist) : null;
-    const pool = favorites ? [...games, ...homebrewApps()] : games;
-    let total = 0;
-    for (const game of pool) {
-      if (q && !`${game.title} ${game.developer} ${game.publisher}`.toLowerCase().includes(q)) continue;
-      if (favorites && !favorites.has(game.id)) continue;
-      // A failed OR facet can be ignored for its own counts; an AND facet cannot.
-      let failed = -1;
-      for (let index = 0; index < FACETS.length; index++) {
-        const facet = FACETS[index];
-        if (passes(game, facet, filters[facet.key])) continue;
-        if (failed !== -1) { failed = -2; break; }
-        failed = index;
-      }
-      if (failed === -2) continue;
-      if (failed === -1) total++;
-      for (let index = 0; index < FACETS.length; index++) {
-        const facet = FACETS[index];
-        if (failed !== -1 && (failed !== index || !facet.any)) continue;
-        const values = counts[facet.key];
-        for (const { value } of facet.options)
-          if (facet.has(game, value)) values[value]++;
-      }
-    }
-    return { total, counts };
+  function facetCounts(state, facet) {
+    const pool = matching(state, facet.any ? facet : void 0);
+    return Object.fromEntries(facet.options.map(({ value }) => [value, pool.filter((game) => facet.has(game, value)).length]));
   }
   var summaryOf = (game) => game.about.find((text) => text.length > 80 && text !== text.toUpperCase()) ?? game.shortDescription;
   function relatedGames(game, limit = 6) {
@@ -289,4 +227,4 @@ import { FileSystem, Image } from '@ps5-react/core';
     return formatNumber2(n);
   }
 
-export { CDN_HOST, FACETS, NO_FILTERS, SORTS, activeCount, addedAt, editionsOf, facetLabel, facetSummary, facetTitle, featureLabel, filterGames, formatCount, formatDate3, fromArchive, genreLabel, genres, getGame, listedId, onCdn, optionLabel, relatedGames, showcase, sortGames, sortLabel, summaryOf, toggleValue, warmCovers };
+export { CDN_HOST, FACETS, NO_FILTERS, SORTS, activeCount, editionsOf, facetCounts, facetLabel, facetTitle, featureLabel, filterGames, formatCount, formatDate3, fromArchive, genreLabel, genres, getGame, listedId, onCdn, optionLabel, relatedGames, showcase, sortGames, sortLabel, summaryOf, toggleValue, warmCovers };

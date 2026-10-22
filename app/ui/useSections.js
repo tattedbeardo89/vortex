@@ -2,26 +2,33 @@
 // reconstructed from the esbuild bundle in eboot.bin
 
 import { useRef, useState } from 'react';
-import { NO_FILTERS } from '../state/catalog.js';
+import { NO_FILTERS, activeCount } from '../state/catalog.js';
 import { useNavActions, useNavState } from '../state/nav.jsx';
 import { useQueryActive, useStoreActions, useStoreState } from '../state/store.jsx';
 
   var KEYS2 = {
     search: "nav:search",
     discover: "nav:discover",
-    browse: "nav:browse",
+    catalog: "nav:browse",
+    top: "nav:top",
     homebrew: "nav:homebrew",
     favorites: "nav:favorites",
     downloads: "nav:downloads",
     files: "nav:files"
   };
-  var TABS = ["search", "discover", "browse", "homebrew", "favorites", "downloads", "files"];
-  // The tab tracks the navigation entry that opened the library until its filters or sort change.
+  // L1/R1 stop on Browse too: the item only takes focus there, and ✕ opens its menu.
+  var TABS = ["search", "discover", "catalog", "top", "homebrew", "favorites", "downloads", "files"];
+  // The section a header item showed, with the filters and sort it set: it names the page while
+  // they stay as they are, since the library opens on New releases for Discover and Browse too and
+  // the sort alone can no longer tell them apart. A change made on the page itself falls back to
+  // what the filters and sort say (sectionOf).
   var pinned = { section: "discover", filters: NO_FILTERS, sort: "newest" };
+  // Whether the Browse item has focus, so L1/R1 move on from it rather than from the page's section.
+  var onBrowse = false;
   function useShowLibrary() {
     const store = useStoreActions();
     const nav = useNavActions();
-    const [show] = (0, useState)(() => (filters, sort, target = "catalog:sort", section = "browse") => {
+    const [show] = (0, useState)(() => (filters, sort, target = "catalog:sort", section = "catalog") => {
       pinned = { section, filters, sort };
       store.setFilters(filters);
       store.setQuery("");
@@ -33,8 +40,11 @@ import { useQueryActive, useStoreActions, useStoreState } from '../state/store.j
   function sectionOf({ filters, sort }, query) {
     if (!query && filters === pinned.filters && sort === pinned.sort) return pinned.section;
     if (filters.wishlist) return "favorites";
-    // The full library stays under Browse regardless of how it is sorted or filtered.
-    return "browse";
+    if (sort === "rating") return "top";
+    // New releases was the whole library sorted the way Browse opens it; Homebrew took its place.
+    if (sort === "newest") return "catalog";
+    if (activeCount(filters) > 0 || query) return "catalog";
+    return "discover";
   }
   function useSections() {
     const store = { ...useStoreState(), ...useStoreActions() };
@@ -46,20 +56,29 @@ import { useQueryActive, useStoreActions, useStoreState } from '../state/store.j
     const section = top.name === "search" ? "search" : top.name === "game" ? null : underneath;
     const topName = (0, useRef)(top.name);
     topName.current = top.name;
+    // L1/R1 stopped on Browse: the pill and the item show it as the current section, like any other
+    // tab, while the page stays where it was until ✕ opens the menu and a choice there shows the library.
+    const [stopped, setStopped] = (0, useState)(false);
     const [on] = (0, useState)(() => ({
       show,
       search: () => topName.current !== "search" && nav.push({ name: "search" }, "nav:search"),
       discover: () => show(NO_FILTERS, "newest", "spotlight:cta", "discover"),
-      browse: () => show(NO_FILTERS, "newest", void 0, "browse"),
+      top: () => show(NO_FILTERS, "rating", void 0, "top"),
       homebrew: () => topName.current !== "homebrew" && nav.push({ name: "homebrew" }, "nav:homebrew"),
       favorites: () => show({ ...NO_FILTERS, wishlist: true }, "newest", void 0, "favorites"),
       downloads: () => topName.current !== "downloads" && nav.push({ name: "downloads" }, "nav:downloads"),
       files: () => topName.current !== "files" && nav.push({ name: "files" }, "nav:files")
     }));
     const step = (forward) => {
-      const current = top.name === "search" ? "search" : underneath;
+      const current = onBrowse ? "catalog" : top.name === "search" ? "search" : underneath;
       const next = TABS[TABS.indexOf(current) + (forward ? 1 : -1)];
       if (!next) return;
+      if (next === "catalog") {
+        setStopped(true);
+        nav.focusLater(next === section ? "nav:current" : KEYS2.catalog);
+        return;
+      }
+      setStopped(false);
       if (next === "downloads" || next === "files" || next === "homebrew") {
         store.setQuery("");
         nav.home();
@@ -74,7 +93,10 @@ import { useQueryActive, useStoreActions, useStoreState } from '../state/store.j
       // The page's top elements go up to `nav:current`, the current section's item, like a PS5 tab
       // row; the scope's own memory would be stale after L1/R1 or a closed menu.
       keyOf: (name) => name === section ? "nav:current" : KEYS2[name],
-      shown: section
+      shown: stopped ? "catalog" : section,
+      browseFocus: { onFocus: () => onBrowse = true, onBlur: () => onBrowse = false },
+      // The stop ends once focus is off Browse and its menu is closed.
+      leaveBrowse: () => onBrowse || setStopped(false)
     };
   }
 

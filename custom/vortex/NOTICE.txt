@@ -1,0 +1,11 @@
+Vortex — customization by tattedbeardo89.
+Based on Overdrive, recovered and maintained by MyLuxy.
+https://github.com/MyLuxy/overdrive
+
+PS5 React — created by half144 and PS5 React contributors.
+https://github.com/half144/ps5-react
+
+Original source recovery notices, copyrights, licenses and dependency provenance remain in the source tree.
+See ps5-react/LICENSE, LICENSE-ATTRIBUTION, NOTICE, docs/DEPENDENCIES.md and packaged notices/.
+UnRAR is a separate program under the UnRAR license; it is not linked into the GPL engine.
+No affiliation with or endorsement by Sony Interactive Entertainment.

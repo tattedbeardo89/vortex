@@ -1,0 +1,62 @@
+--- a/state/update.js
++++ b/state/update.js
+@@ -8,18 +8,18 @@
+ import { VERSION } from '../version.js';
+ import { Archives, Downloads, FileSystem, Http, Platform } from '@ps5-react/core';
+ 
+-  var TITLE = "PPSA99058";
+-  var FEED = "https://api.github.com/repos/MyLuxy/overdrive/releases/latest";
+-  var FEED_OVERRIDES = [`${FileSystem.dataDir}/overdrive/update-feed`, `/data/ps5-react/${TITLE}/overdrive/update-feed`];
++import {BRAND} from "../vortex-brand.js";
++import {FEED} from "./vortex-update-policy.js";
++  var TITLE = BRAND.titleId;
+   function location() {
+-    if (Platform.OS !== "ps5") return { installDir: `${FileSystem.dataDir}/homebrew/${TITLE}`, workDir: `${FileSystem.dataDir}/overdrive-update` };
++    if (Platform.OS !== "ps5") return { installDir: `${FileSystem.dataDir}/homebrew/${TITLE}`, workDir: `${FileSystem.dataDir}/vortex-update` };
+     return locateInstall({ http: Http, fs: FileSystem, title: TITLE, roots: storageRoots });
+   }
+   // One package carries an update: the image alone, for an image install. A folder install is
+   // offered nothing, because replacing it would hand `replaceImage` a folder holding an image.
+   function assetFor({ image }) {
+-    if (Platform.OS !== "ps5") return "Overdrive-desktop.zip";
+-    return image ? "update.zip" : null;
++    if (Platform.OS !== "ps5") return null;
++    return image ? BRAND.updateAsset : null;
+   }
+   var foundInstall;
+   var located = new Promise((resolve2) => {
+@@ -30,23 +30,15 @@
+     if (updater) return updater;
+     const install = await location();
+     foundInstall(install);
+-    const override = FEED_OVERRIDES.find((path) => {
+-      try {
+-        return FileSystem.exists(path);
+-      } catch {
+-        return false;
+-      }
+-    });
+-    const feed = override ? FileSystem.readFile(override).trim() : FEED;
+     return updater = createUpdater({
+       http: Http,
+       downloads: Downloads,
+       archives: Archives,
+       fs: FileSystem,
+       version: VERSION,
+-      feed,
++      feed: FEED,
+       asset: assetFor(install),
+-      marker: `${FileSystem.dataDir}/overdrive/pending-image.json`,
++      marker: `${FileSystem.dataDir}/vortex/pending-image.json`,
+       ...install
+     });
+   }
+@@ -60,7 +52,7 @@
+           void current.cleanup();
+           setUpdate(await current.check());
+         } catch (error2) {
+-          console.log(`overdrive: update check failed: ${error2.message}`);
++          console.log(`vortex: update check failed: ${error2.message}`);
+         }
+       }, CHECK_DELAY_MS);
+       return () => clearTimeout(id);

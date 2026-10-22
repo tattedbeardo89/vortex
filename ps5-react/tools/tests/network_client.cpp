@@ -50,6 +50,8 @@ int main(int argc, char** argv) {
   if (const char* bytes = std::getenv("NETWORK_TEST_RANGE_BYTES")) request.range_bytes = std::strtoull(bytes, nullptr, 10);
   request.max_bytes = argc > 4 ? std::strtoull(argv[4], nullptr, 10) : 1024*1024;
   const unsigned cancel_ms = argc > 5 ? static_cast<unsigned>(std::atoi(argv[5])) : 0;
+  const char* cancel_completed = std::getenv("NETWORK_TEST_CANCEL_COMPLETED_BYTES");
+  const std::uint64_t cancel_completed_bytes = cancel_completed ? std::strtoull(cancel_completed, nullptr, 10) : 0;
   const unsigned stop_ms = argc > 9 ? static_cast<unsigned>(std::atoi(argv[9])) : 0;
   if (argc > 6) request.sha256 = argv[6];
   if (argc > 7) request.method = argv[7];
@@ -80,6 +82,8 @@ int main(int argc, char** argv) {
     }
     if ((cancel_ms && elapsed >= cancel_ms) || elapsed > deadline_ms) network::cancel(id);
     for (const auto& result : network::poll()) {
+      if (cancel_completed_bytes && result.completed_bytes >= cancel_completed_bytes &&
+          result.state != "completed" && result.state != "failed" && result.state != "cancelled") network::cancel(id);
       peak_buffer = std::max(peak_buffer, result.buffered);
       peak_connections = std::max(peak_connections, result.connections);
       if (result.state == "completed" || result.state == "failed" || result.state == "cancelled") {
@@ -92,6 +96,7 @@ int main(int argc, char** argv) {
           first = false; std::cout << escaped(name) << ":" << escaped(value);
         }
         std::cout << "},\"retries\":" << result.retries
+          << ",\"completedBytes\":" << result.completed_bytes
           << ",\"received\":" << result.received << ",\"status\":" << result.status
           << ",\"peakBuffer\":" << peak_buffer << ",\"peakConnections\":" << peak_connections
           << ",\"milliseconds\":" << elapsed << "}" << '\n';

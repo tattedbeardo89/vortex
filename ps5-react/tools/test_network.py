@@ -12,6 +12,7 @@ import signal
 import socket
 import ssl
 import struct
+import sys
 import subprocess
 import tempfile
 import threading
@@ -69,10 +70,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
             with self.guard:
                 first = ("refuse", self.headers["Range"]) not in self.retried
                 self.retried.add(("refuse", self.headers["Range"]))
-            # The first range's first answer is archive.org's HTML error page; it must not read as a web page.
-            if busy > 6 or (first and self.headers["Range"].startswith("bytes=0-")):
-                status = (500, 503, 429)[len(self.refused) % 3]
-                self.refused.append(status)
+            # Exercise every refusal even if adaptive concurrency shrinks before seven requests overlap.
+            # Select and record under one lock so concurrent handlers cannot duplicate/skip a status.
+            with self.guard:
+                refuse = len(self.refused) < 3 or busy > 6 or (first and self.headers["Range"].startswith("bytes=0-"))
+                status = (500, 503, 429)[len(self.refused) % 3] if refuse else None
+                if refuse: self.refused.append(status)
+            # The first refusal is archive.org's HTML error page; it must not read as a web page.
+            if refuse:
                 body = b"<html><body>Internal Server Error</body></html>" if status == 500 else b""
                 self.send_response(status)
                 if status == 503: self.send_header("Retry-After", "0")
@@ -267,7 +272,7 @@ def compile_client(directory):
     subprocess.run(["clang++", "-std=c++20", "-O2", "-Wall", "-Wextra", "-Werror", "-pthread",
                     "-I", str(ROOT / "native/shared"), str(ROOT / "tools/tests/network_client.cpp"),
                     str(ROOT / "native/shared/network.cpp"), str(ROOT / "tools/tests/network_test_platform.cpp"),
-                    "-lcurl", "-o", str(binary)], check=True)
+                    "-lcurl", *([] if sys.platform == "darwin" else ["-lcrypto"]), "-o", str(binary)], check=True)
     return binary
 
 
@@ -279,8 +284,10 @@ def main():
         directory = Path(temporary)
         binary = compile_client(directory)
 
-        def run(endpoint, path="-", connections=4, max_bytes=1024*1024, cancel=0, digest="", method="GET", file_limit=0, stop=0, pieces=False, hashes=None, recover=False, reject_html=False, no_redirect=False, mirrors=(), adaptive=False, range_probe=False, range_bytes=0):
+        def run(endpoint, path="-", connections=4, max_bytes=1024*1024, cancel=0, digest="", method="GET", file_limit=0, stop=0, pieces=False, hashes=None, recover=False, reject_html=False, no_redirect=False, mirrors=(), adaptive=False, range_probe=False, range_bytes=0, cancel_completed_bytes=0):
             environment = dict(os.environ)
+            environment.pop("NETWORK_TEST_CANCEL_COMPLETED_BYTES", None)
+            if cancel_completed_bytes: environment["NETWORK_TEST_CANCEL_COMPLETED_BYTES"] = str(cancel_completed_bytes)
             environment.pop("NETWORK_TEST_RANGE_PROBE", None)
             environment.pop("NETWORK_TEST_RANGE_BYTES", None)
             if range_bytes: environment["NETWORK_TEST_RANGE_BYTES"] = str(range_bytes)
@@ -595,7 +602,9 @@ def main():
         for endpoint in ("/slow-no-validator", "/slow-no-validator-mutable"):
             path = directory / endpoint.removeprefix("/")
             Handler.mutated = False
-            assert run(endpoint, path, cancel=180)["state"] == "cancelled"
+            # A mutation check needs a retained complete range, not merely 180 ms of wall time.
+            partial = run(endpoint, path, connections=1, cancel_completed_bytes=1024*1024)
+            assert partial["state"] == "cancelled" and partial["completedBytes"] >= 1024*1024, partial
             Handler.mutated = endpoint.endswith("mutable")
             out = run(endpoint, path)
             if Handler.mutated:

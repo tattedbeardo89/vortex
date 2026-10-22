@@ -1,0 +1,11 @@
+{
+  "source": "https://prosperostore.net/api/v1/index.json",
+  "retrieved": "2026-10-22T00:10:37.351290+00:00",
+  "sha256": "31d197462f19e3d5efab016189d543d4e0dc95c93d28e85d9e492f8dc5d4c094",
+  "upstreamCommit": "93c5faef80639ec81b64dc2e971d9ce6e15f6cb4",
+  "generated": "2026-10-21T23:20:58Z",
+  "apps": 113,
+  "note": "Actual public API response: 113 raw records, 104 available and 9 coming_soon. No icons/artifacts downloaded.",
+  "visibleApps": 104,
+  "excludedComingSoon": 9
+}
