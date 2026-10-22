@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "eac1f1f869b2c89639f51e30357896a7fff74c42",
+  "sourceCommit": "1f2fbbd77026a4da4320e23138213bb0ff669da6",
   "pullRequest": 4,
   "basePullRequest": 3,
   "upstreamCommit": "9f90d882771eb87f75579b10f951cc2dbe4daf2a",
@@ -10,10 +10,10 @@
     "ps4": 139,
     "homebrewFixture": 104
   },
-  "run": 39798912516,
+  "run": 39803377858,
   "jobs": {
     "identity-and-tests": "success",
-    "web-extension": "success",
+    "web-extension": "in_progress (API/frontend passed; browser installation/rerun pending)",
     "native-build": "success",
     "framework-tests": "failure"
   },
@@ -56,10 +56,10 @@
     "webkit"
   ],
   "artifact": {
-    "id": 12434098901,
+    "id": 12436168778,
     "name": "Vortex-native-validation",
-    "size": 55152126,
-    "archiveSha256": "8f49417bdac195e332f6576e5c9fd8d800d57ed5442839e9b929c9eefeb170e2",
+    "size": 55163033,
+    "archiveSha256": "d5b5356dafe03d7e3af13bb47a48984c90fbe32d4ac6d479c1d2984f5a924d72",
     "contains": [
       "Vortex.exfat",
       "update.zip",
@@ -68,7 +68,7 @@
     ],
     "hostedPackagingVerified": true,
     "independentLocalDownloadVerified": false,
-    "localDownloadBlocker": "Cloud proxy HTTP 403 for artifact blob host"
+    "localDownloadBlocker": "Cloud proxy Forbidden response for final artifact blob host"
   },
   "hardwareTested": false,
   "providerReachabilityTested": false,
@@ -87,5 +87,31 @@
     "actualQueueRead": true,
     "transfersTested": false,
     "pairingRevocationAndShutdown": true
-  }
+  },
+  "previousImplementationBuild": {
+    "sourceCommit": "eac1f1f869b2c89639f51e30357896a7fff74c42",
+    "run": 39798912516,
+    "artifact": {
+      "id": 12434098901,
+      "name": "Vortex-native-validation",
+      "size": 55152126,
+      "archiveSha256": "8f49417bdac195e332f6576e5c9fd8d800d57ed5442839e9b929c9eefeb170e2",
+      "contains": [
+        "Vortex.exfat",
+        "update.zip",
+        "vortex-update.json",
+        "validation/provenance reports"
+      ],
+      "hostedPackagingVerified": true,
+      "independentLocalDownloadVerified": false,
+      "localDownloadBlocker": "Cloud proxy HTTP 403 for artifact blob host"
+    }
+  },
+  "hostedNativeApplicationPreview": {
+    "passed": true,
+    "artifactId": 12436383275,
+    "hardwareTested": false
+  },
+  "hostedBrowserEvidenceRun": 39798912516,
+  "finalArtifactIndependentDownloadBlocker": "Cloud proxy Forbidden response: productionresultssa0.blob.core.windows.net"
 }

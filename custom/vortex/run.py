@@ -39,7 +39,7 @@ def watch_overlay(command):
             time.sleep(0.25)
             stamp = input_stamp()
             try:
-                lock_path = ROOT / 'ps5-react/.build/build.lock'
+                lock_path = ROOT / '.vortex/framework/.build/build.lock'
                 lock_path.parent.mkdir(exist_ok=True)
                 with lock_path.open('w') as lock:
                     fcntl.flock(lock, fcntl.LOCK_EX)
