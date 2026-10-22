@@ -143,6 +143,8 @@ def main():
    xz=subprocess.check_output(["brew","--prefix","xz"],text=True).strip()
    crypto=subprocess.check_output(["brew","--prefix","openssl@3"],text=True).strip()
   else: prefix=xz=crypto="/usr"
+  bsdtar=str(Path(prefix)/"bin/bsdtar") if (Path(prefix)/"bin/bsdtar").is_file() else shutil.which("bsdtar")
+  if not bsdtar: raise FileNotFoundError("Install bsdtar (libarchive-tools) to run archive tests")
   sources=[ROOT/"tools/tests/archive_client.cpp",ROOT/"native/shared/archives.cpp",ROOT/"native/shared/archive_preflight.cpp",ROOT/"native/shared/rar5_password.cpp",ROOT/"native/shared/archive_writer.cpp",ROOT/"native/desktop/rar_worker_process.cpp"]
   # RAR volumes go to rar-extract, as in the app; the other formats stay with libarchive.
   os.environ["PS5_REACT_RAR_WORKER"]=str(build_host(root/"rar-extract"))
@@ -569,7 +571,7 @@ def main():
   assert (root/"split-tar/nested/file.bin").read_bytes()==DATA
   plain=root/"payload.bin";plain.write_bytes(DATA)
   seven=root/"fixture.7z"
-  subprocess.run([prefix+"/bin/bsdtar","--format=7zip","-cf",str(seven),"-C",str(root),"payload.bin"],check=True)
+  subprocess.run([bsdtar,"--format=7zip","-cf",str(seven),"-C",str(root),"payload.bin"],check=True)
   assert run("7zip",[seven])[0]=="completed"
   assert (root/"7zip/payload.bin").read_bytes()==DATA
   blob=seven.read_bytes();seven_parts=[]
@@ -580,7 +582,7 @@ def main():
   assert (root/"split-7zip/payload.bin").read_bytes()==DATA
   # Decoder windows above the console budget are refused before libarchive allocates them.
   big=root/"big.7z"
-  subprocess.run([prefix+"/bin/bsdtar","--format=7zip","--options=7zip:compression=lzma2,7zip:compression-level=9","-cf",str(big),"-C",str(root),"payload.bin"],check=True)
+  subprocess.run([bsdtar,"--format=7zip","--options=7zip:compression=lzma2,7zip:compression-level=9","-cf",str(big),"-C",str(root),"payload.bin"],check=True)
   # 7-Zip ultra's 64 MiB dictionary is the budget itself.
   assert run("big-7zip",[big])[0]=="completed"
   # A 7z whose dictionary the app's heap cannot hold extracts in rar-extract, up to the worker's budget
@@ -638,7 +640,7 @@ def main():
   # A sparse member arrives out of order, so its digest comes from reading the file back.
   sparse=root/"sparse.bin"
   with sparse.open("wb") as f:f.write(b"head"*1000);f.seek(8*1024*1024);f.write(b"tail"*1000)
-  p=root/"sparse.tar";subprocess.run([prefix+"/bin/bsdtar","--read-sparse","-cf",str(p),"-C",str(root),"sparse.bin"],check=True)
+  p=root/"sparse.tar";subprocess.run([bsdtar,"--read-sparse","-cf",str(p),"-C",str(root),"sparse.bin"],check=True)
   assert run("sparse",[p],16*1024*1024)[0]=="completed"
   assert (root/"sparse/.ps5-react-extraction").read_text().splitlines()[1]==hashlib.sha256(sparse.read_bytes()).hexdigest()+"|sparse.bin"
   assert run("missing-part",parts[:1])[0]=="failed"

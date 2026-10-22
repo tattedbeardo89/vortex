@@ -323,17 +323,23 @@ test('archive and download task IDs are isolated while sharing the polling timer
 test('browser capture delivers only its result and cancellation rejects as AbortError', async () => {
   const originalInterval = globalThis.setInterval, originalClear = globalThis.clearInterval;
   let tick, snapshots = [], next = 1;
-  const calls = [], cancelled = [];
+  const calls = [], cancelled = [], active = new Set();
+  let clears = 0;
   globalThis.setInterval = callback => { tick = callback; return 1; };
-  globalThis.clearInterval = () => {};
+  globalThis.clearInterval = () => { clears++; };
   globalThis.__ps5ReactNative = {browser: {
-    capture: (...args) => { calls.push(args); return next++; },
-    poll: () => { const result = snapshots; snapshots = []; return result; },
+    capture: (...args) => { calls.push(args); const id = next++; active.add(id); return id; },
+    poll: () => {
+      const result = snapshots; snapshots = [];
+      for (const snapshot of result)
+        if (['completed', 'failed', 'cancelled'].includes(snapshot.state)) active.delete(snapshot.id);
+      return result;
+    },
     cancel: id => cancelled.push(id),
   }};
   try {
     const capture = BrowserCapture.capture({suffix: '/Game.pkg'});
-    assert.deepEqual(calls, [['https://vikingfile.com/d/', '/Game.pkg', 180]]);
+    assert.deepEqual(calls, [['https://vikingfile.com/d/', '/Game.pkg', 180, [], false]]);
     const states = [];
     const off = capture.subscribe(snapshot => states.push(snapshot.state));
     snapshots = [{id: 1, state: 'capturing'}]; tick();
@@ -341,11 +347,18 @@ test('browser capture delivers only its result and cancellation rejects as Abort
     snapshots = [{id: 1, state: 'completed', url}]; tick();
     assert.equal((await capture.done).url, url);
     assert.deepEqual(states, ['queued', 'capturing', 'completed']); off();
-    const second = BrowserCapture.capture({suffix: '/Other.pkg', timeoutSeconds: 30});
+    assert.equal(clears, 1);
+    const rejected = ['https://vikingfile.com/d/Ab01234567/Old.pkg'];
+    const second = BrowserCapture.capture({suffix: '/Other.pkg', timeoutSeconds: 30, rejected, resume: true});
+    assert.deepEqual(calls[1], ['https://vikingfile.com/d/', '/Other.pkg', 30, rejected, true]);
     second.cancel(); assert.deepEqual(cancelled, [2]);
     snapshots = [{id: 2, state: 'cancelled'}]; tick();
     await assert.rejects(second.done, {name: 'AbortError'});
+    assert.equal(clears, 2);
   } finally {
+    // Drain fixture-owned tasks before restoring the mock host/timer, even if an assertion fails.
+    snapshots = [...active].map(id => ({id, state: 'cancelled'}));
+    if (snapshots.length) tick();
     globalThis.setInterval = originalInterval; globalThis.clearInterval = originalClear;
     delete globalThis.__ps5ReactNative;
   }

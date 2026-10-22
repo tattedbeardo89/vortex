@@ -57,10 +57,18 @@ def integrate_snapshot(repo, base, upstream):
     # Keep Vortex workflows, packaging wrappers and diagnostics outside that source snapshot.
     git(repo,'restore','--source='+tip,'--staged','--worktree','--',*SOURCE_PATHS)
     manifest.write_text(json.dumps(candidate,indent=2)+'\n')
+    from framework_test_overrides import apply as apply_test_overrides
+    test_review = None
+    try:
+        apply_test_overrides(repo)
+        git(repo,'add','--',*SOURCE_PATHS)
+    except (ValueError, subprocess.CalledProcessError) as error:
+        # Commit the intact candidate snapshot; baseline validation blocks an incompatible override.
+        test_review = str(error)
     git(repo,'add','--','custom/vortex/upstream-baseline.json')
     if git(repo,'diff','--cached','--quiet',check=False).returncode:
         git(repo,'commit','-m','Propose upstream '+candidate['sourceVersion']+' source/catalog '+tip[:12])
-    return {'state':'merged','tip':tip,'previousBaseline':previous,'baseline':candidate,
+    return {'state':'merged','tip':tip,'previousBaseline':previous,'baseline':candidate,'frameworkTestReview':test_review,
             'policy':'Review only; source and catalog advance together. Theme/contracts require compatibility checks.'}
 
 def gh(repo,*args,check=True):
