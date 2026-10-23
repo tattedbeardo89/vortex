@@ -3,7 +3,7 @@ import hashlib
 import json
 from pathlib import Path
 import xml.etree.ElementTree as ET
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, __version__ as pillow_version
 from bc7 import encode
 from functools import lru_cache
 import io
@@ -33,7 +33,7 @@ def generate(stage):
     assets=stage/'vortex-web-assets';assets.mkdir(exist_ok=True)
     (assets/'favicon.svg').write_bytes(master.read_bytes())
     (stage/'ui/vortex-emblem.js').write_text('export const EMBLEM = '+json.dumps(paths)+';\n')
-    manifest={'format':1,'masterSha256':hashlib.sha256(master.read_bytes()).hexdigest(),'files':{}}
+    manifest={'format':1,'pillowVersion':pillow_version,'generators':{name:hashlib.sha256((CUSTOM/name).read_bytes()).hexdigest() for name in ['branding.py','bc7.py']},'masterSha256':hashlib.sha256(master.read_bytes()).hexdigest(),'files':{}}
     for name in ['icon0.png','pic0.dds','pic1.dds']:
         path=art/name
         with Image.open(path) as image: dimensions=list(image.size)

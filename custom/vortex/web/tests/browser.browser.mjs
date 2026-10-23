@@ -140,13 +140,11 @@ for (const project of selected)
         // A stopped process is offline, not unpaired; persist the browser cookie across reload/restart.
         child.kill("SIGTERM");
         await new Promise((resolve) => child.once("exit", resolve));
-        await page
-          .getByText(
-            "Vortex is offline. Reopen Vortex on your PS5 to reconnect.",
-            { exact: true },
-          )
-          .first()
-          .waitFor({ timeout: 35000 });
+        await page.locator("#notice-message").waitFor({ timeout: 35000 });
+        assert.equal(
+          await page.locator("#notice-message").textContent(),
+          "Vortex is offline. Reopen Vortex on your PS5 to reconnect.",
+        );
         assert.equal(await page.locator("#pair-dialog[open]").count(), 0);
         const credentials = await context.cookies();
         assert.ok(credentials.some((c) => c.name === "vortex_session"));
@@ -164,32 +162,28 @@ for (const project of selected)
         );
         assert.equal(await page.locator("#pair-dialog[open]").count(), 0);
         // Ambiguous server failure during startup must retain authorization and avoid the pairing screen.
-        await page.route("**/api/v1/auth/session", (r) =>
-          r.fulfill({
-            status: 503,
-            contentType: "application/json",
-            body: '{"error":"maintenance"}',
-          }),
-        );
-        await page.reload();
-        await page
-          .getByText(
-            "Vortex is offline. Reopen Vortex on your PS5 to reconnect.",
-            { exact: true },
-          )
-          .first()
-          .waitFor();
-        assert.equal(await page.locator("#pair-dialog[open]").count(), 0);
-        assert.ok(
-          (await context.cookies()).some((c) => c.name === "vortex_session"),
-        );
-        await page.unroute("**/api/v1/auth/session");
-        await page.locator("#reconnect").click();
-        await page.waitForFunction(() =>
-          document
-            .querySelector("#connection")
-            .textContent.includes("Connected"),
-        );
+        for (const status of [503, 401]) {
+          await page.route("**/api/v1/auth/session", (r) =>
+            r.fulfill({
+              status,
+              contentType: "application/json",
+              body: '{"error":"maintenance"}',
+            }),
+          );
+          await page.reload();
+          await page.locator("#notice-message").waitFor();
+          assert.equal(await page.locator("#pair-dialog[open]").count(), 0);
+          assert.ok(
+            (await context.cookies()).some((c) => c.name === "vortex_session"),
+          );
+          await page.unroute("**/api/v1/auth/session");
+          await page.locator("#reconnect").click();
+          await page.waitForFunction(() =>
+            document
+              .querySelector("#connection")
+              .textContent.includes("Connected"),
+          );
+        }
         await context.setOffline(true);
         await wait(3200);
         await context.setOffline(false);

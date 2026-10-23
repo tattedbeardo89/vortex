@@ -40,7 +40,8 @@ export function createAuth({
     requests = new Map();
   let highWater = 0,
     savedAt = 0,
-    dirty = false;
+    dirty = false,
+    active = true;
   const now = () => {
     const time = wallClock();
     if (
@@ -149,6 +150,7 @@ export function createAuth({
         if (!values.some((t) => t > now() - 60000)) map.delete(ip);
   }
   function validateRequest(req) {
+    if (!active) fail(503, "Web listener restarted; reconnect");
     if (!privateIPv4(req.peer) || !privateIPv4(req.local))
       fail(403, "Local-network access only");
     const host = req.headers.host;
@@ -232,6 +234,7 @@ export function createAuth({
     };
   }
   function authenticate(req) {
+    if (!active) fail(503, "Web listener restarted; reconnect");
     const cookies = (req.headers.cookie || "")
       .split(";")
       .map((x) => x.trim())
@@ -266,6 +269,7 @@ export function createAuth({
     return `vortex_session=${secret}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${SESSION_MS / 1000}`;
   }
   function touch(id) {
+    if (!active) fail(503, "Web listener restarted; reconnect");
     const session = [...sessions.values()].find((s) => s.id === id);
     if (!session || session.expires <= now())
       fail(401, "Session expired or revoked; pair again");
@@ -289,7 +293,12 @@ export function createAuth({
     return match ? cookie(match[1]) : "";
   }
   function flush() {
-    if (dirty) save();
+    // Persist the clock high-water mark on graceful shutdown even without a renewal.
+    if (dirty || sessions.size) save();
+  }
+  function close() {
+    active = false;
+    pairing = null;
   }
   function revoke(id) {
     for (const [secret, s] of sessions)
@@ -307,6 +316,7 @@ export function createAuth({
     globalRequests = [];
   }
   return {
+    close,
     touch,
     renewal,
     flush,

@@ -68,6 +68,7 @@ export function stopService() {
   } catch (failure) {
     error = failure.message;
   }
+  auth?.close();
   auth = null;
   notify();
 }

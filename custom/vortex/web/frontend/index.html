@@ -39,7 +39,6 @@
       </nav>
       <div class="sidebar-foot">
         <span id="connection" role="status" aria-live="polite">Connecting…</span
-        ><button id="reconnect" class="quiet" type="button">Reconnect</button
         ><small id="build-label">Local network · Vortex must remain open</small>
       </div>
     </aside>
@@ -56,7 +55,12 @@
         </form>
         <button id="sign-out" class="quiet">Sign out</button>
       </header>
-      <div id="notice" class="notice" role="status" hidden></div>
+      <div id="notice" class="notice" role="status" hidden>
+        <span id="notice-message"></span>
+        <button id="reconnect" class="quiet" type="button" hidden>
+          Reconnect
+        </button>
+      </div>
       <main id="content" tabindex="-1">
         <div class="empty">Connecting to Vortex…</div>
       </main>

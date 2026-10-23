@@ -1,6 +1,6 @@
 # Vortex Web security
 
-Vortex Web is disabled until explicitly enabled on the console. Configuration persists in the application's independent data directory (`vortex/web.json`); pairing codes, sessions and CSRF secrets remain in memory. Closing/restarting the app, disabling Web or changing listener configuration invalidates all sessions. No UPnP, router forwarding, internet access, external hosting or companion daemon is configured.
+Vortex Web is disabled until explicitly enabled on the console. Configuration persists in the application's independent data directory (`vortex/web.json`); pairing codes remain ephemeral, while device verifiers and validated activity timestamps persist separately in `vortex/web-devices.json`. Closing/restarting the app, disabling Web or changing listener configuration keeps unexpired device authorization. No UPnP, router forwarding, internet access, external hosting or companion daemon is configured.
 
 ## Trust boundary
 

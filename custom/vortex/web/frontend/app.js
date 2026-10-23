@@ -48,7 +48,8 @@ const picture = (url, alt, className = "") => {
   return img;
 };
 function notice(text) {
-  $("notice").textContent = text;
+  $("notice-message").textContent = text;
+  $("reconnect").hidden = text !== OFFLINE;
   $("notice").hidden = !text;
 }
 function connection(connected, text) {
@@ -56,6 +57,7 @@ function connection(connected, text) {
   $("connection").textContent = text;
 }
 function requirePair(message = "") {
+  notice("");
   csrf = "";
   facets = null;
   sequence++;
@@ -105,7 +107,7 @@ async function api(path, body) {
       readOnly ? "Connected · read-only" : "Connected to Vortex",
     );
     pollDelay = 2500;
-    if ($("notice").textContent === OFFLINE) notice("");
+    if ($("notice-message").textContent === OFFLINE) notice("");
     return result;
   } catch (error) {
     if (error.name === "AbortError" || error instanceof TypeError) {
@@ -788,7 +790,7 @@ async function poll() {
     } catch (error) {
       if (!pairDialog.open) offline();
       pollDelay = Math.min(30000, pollDelay * 2);
-      notice(error.message);
+      if (pairDialog.open) notice(error.message);
     }
   pollTimer = setTimeout(poll, document.hidden ? 10000 : pollDelay);
 }

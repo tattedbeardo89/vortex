@@ -241,3 +241,56 @@ test("saved timestamps are validated and forward clock jumps expire conservative
   f.advance(SESSION_MS);
   assert.throws(() => a.authenticate(req(p.cookie)), /expired/);
 });
+
+test("listener shutdown invalidates old in-flight authorization without revoking durable devices", () => {
+  const f = fixture(),
+    a = f.start(),
+    p = f.pair(a);
+  a.flush();
+  a.close();
+  assert.throws(() => a.authenticate(req(p.cookie)), /listener restarted/);
+  assert.throws(() => a.touch(p.id), /listener restarted/);
+  assert.equal(f.start().authenticate(req(p.cookie)).id, p.id);
+});
+test("graceful shutdown persists the clock without extending inactive devices", () => {
+  const f = fixture(),
+    a = f.start(),
+    p = f.pair(a),
+    expiry = a.devices()[0].expires;
+  f.advance(10 * 24 * 60 * 60 * 1000);
+  a.authenticate(req(p.cookie));
+  a.flush();
+  a.close();
+  assert.equal(f.start().devices()[0].expires, expiry);
+  f.set(1700000000000);
+  assert.throws(f.start, /clock/);
+});
+
+test("async download authorization from a stopped listener cannot enqueue after restart", async () => {
+  const f = fixture(),
+    a = f.start(),
+    p = f.pair(a);
+  let finish,
+    enqueued = 0;
+  const ready = new Promise((resolve) => (finish = resolve));
+  const router = createRouter({
+    auth: a,
+    state: {
+      enqueue: async (_body, authorize) => {
+        await ready;
+        authorize();
+        enqueued++;
+        return { ok: true };
+      },
+    },
+    settings: () => ({}),
+    readAsset: () => "",
+  });
+  const pending = router(req(p.cookie, "POST", "/api/v1/downloads", p.csrf));
+  a.flush();
+  a.close();
+  finish();
+  assert.equal((await pending).status, 503);
+  assert.equal(enqueued, 0);
+  assert.equal(f.start().authenticate(req(p.cookie)).id, p.id);
+});

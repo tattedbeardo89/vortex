@@ -18,7 +18,7 @@ Native state lives at `${FileSystem.dataDir}/vortex/web-devices.json`, alongside
 
 ## Persistence, clocks and recovery
 
-Pairing and revocation commit immediately using a synced temporary file and atomic rename. Activity updates live in memory immediately and checkpoint at most once per five minutes; graceful service shutdown flushes them. Abrupt process termination can lose up to five minutes of recent activity, conservatively shortening authorization rather than extending it. No maintenance timer writes or renews activity.
+Pairing and revocation commit immediately using a synced temporary file and atomic rename. Activity updates live in memory immediately and checkpoint at most once per five minutes; graceful service shutdown flushes them and checkpoints the clock without renewing inactive devices. Abrupt process termination can lose up to five minutes of recent activity, conservatively shortening authorization rather than extending it. No maintenance timer writes or renews activity.
 
 The PS5 system wall clock is the available time source. Integer/range checks, a persisted clock high-water mark and a five-minute rollback tolerance guard timestamps. Small backward changes clamp to the high-water mark; larger rollback/invalid clocks stop authorization with a service error until corrected. Forward jumps expire devices conservatively. No unauthenticated client supplies the security clock.
 
@@ -30,6 +30,8 @@ The browser displays **“Vortex is offline. Reopen Vortex on your PS5 to reconn
 
 ## Validation and device scope
 
-Controlled-clock/isolated-storage tests cover expiry, renewal, non-renewing polling, failed requests, corrupt state, interrupted writes, persistent revocation, bounded sessions and module reconstruction. Browser tests stop/restart the real development process with the same persistent store and cookie, assert offline rather than pairing, and cover startup 503 recovery. The actual native QuickJS/HTTP probe exercises the generated integration; hosted PS5 packaging verifies the new icon, backgrounds, SVG favicon and native Web assets.
+Controlled-clock/isolated-storage tests cover expiry, renewal, non-renewing polling, failed requests, corrupt state, interrupted writes, persistent revocation, bounded sessions and module reconstruction. Browser tests stop/restart the real development process with the same persistent store and cookie, assert offline rather than pairing, and cover startup 503 recovery. The actual native QuickJS/HTTP probe exercises the generated integration; PS5 packaging is configured to verify the new icon, backgrounds, SVG favicon and native Web assets.
 
 Physical PS5 app switching, rest mode, reboot, clock changes, real device storage durability and controller appearance still need hardware verification. No console deployment or release publication is performed automatically.
+
+Stopping a listener also invalidates its in-flight authorization object without deleting durable devices. Old async resolutions cannot enqueue through a stopped generation; a new listener reloads the same unrevoked device verifiers.
