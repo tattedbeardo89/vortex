@@ -8,12 +8,25 @@ import subprocess
 import sys
 from overlay import ROOT, CUSTOM, OUTPUT, configuration, digest, prepare, tree
 
+def validate_catalog_resources(app, stage):
+    config = json.loads((stage / 'app.json').read_text())
+    expected = {}
+    for entry in config.get('resources', []):
+        if entry != 'data' and not entry.startswith('data/'): continue
+        source = stage / entry
+        paths = source.rglob('*') if source.is_dir() else [source]
+        for path in paths:
+            if path.is_file(): expected[str(path.relative_to(stage))] = digest(path)
+    actual = {str(path.relative_to(app)): digest(path) for path in (app / 'data').rglob('*') if path.is_file()}
+    assert actual == expected, 'Packaged catalog resources differ from the selected source; clean the owned native output'
+
 def validate_built(brand):
     dist = ROOT / 'ps5-react/dist'
     app = dist / brand['titleId']
     param = json.loads((app / 'sce_sys/param.json').read_text())
     receipt = json.loads((dist / (brand['titleId'] + '.receipt.json')).read_text())
     config = json.loads((OUTPUT / 'app.json').read_text())
+    validate_catalog_resources(app, OUTPUT)
     assert param['titleId'] == brand['titleId']
     assert param['contentId'] == brand['contentId']
     assert param['contentVersion'] == config['version']
