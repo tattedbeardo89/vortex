@@ -1,13 +1,13 @@
 // Native controller destinations use the original store/nav actions.
 export const SIDEBAR = [
-  { id: "discover", label: "Discover" },
-  { id: "catalog", label: "All Games" },
-  { id: "ps5", label: "PlayStation 5" },
-  { id: "ps4", label: "PlayStation 4" },
-  { id: "homebrew", label: "Homebrew" },
-  { id: "favorites", label: "Favorites" },
-  { id: "downloads", label: "Downloads" },
-  { id: "settings", label: "Settings & Devices" },
+  { id: "discover", label: "Discover", focus: "spotlight:cta" },
+  { id: "catalog", label: "All Games", focus: "catalog:sort" },
+  { id: "ps5", label: "PlayStation 5", focus: "catalog:sort" },
+  { id: "ps4", label: "PlayStation 4", focus: "catalog:sort" },
+  { id: "homebrew", label: "Homebrew", focus: "homebrew-page" },
+  { id: "favorites", label: "Favorites", focus: "catalog:sort" },
+  { id: "downloads", label: "Downloads", focus: "screen" },
+  { id: "settings", label: "Settings & Devices", focus: "web:toggle" },
 ];
 export function destination(id, filters, actions, settings) {
   if (id === "settings") return settings();
@@ -22,7 +22,8 @@ export function destination(id, filters, actions, settings) {
     return actions.show(filters, "newest", "catalog:sort", "catalog");
   return actions[id]();
 }
-export function currentSection(top, section, filters) {
+export function currentSection(top, section, filters, settings = false) {
+  if (settings) return "settings";
   if (
     top === "browse" &&
     section === "catalog" &&
@@ -46,3 +47,21 @@ export const FULL = {
   top: 0,
   bottom: 0,
 };
+
+// This is the only primary section order. Legacy destinations remain visible tools.
+export function adjacentSection(current, forward) {
+  const index = SIDEBAR.findIndex((row) => row.id === current);
+  return SIDEBAR[
+    (Math.max(0, index) + (forward ? 1 : SIDEBAR.length - 1)) % SIDEBAR.length
+  ].id;
+}
+export function contentFocus(id) {
+  return (
+    SIDEBAR.find((row) => row.id === id)?.focus ||
+    (id === "homebrew"
+      ? "homebrew-page"
+      : id === "downloads"
+        ? "screen"
+        : "page")
+  );
+}

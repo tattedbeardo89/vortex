@@ -5,12 +5,13 @@ import { FocusRing } from "../ui/FocusRing.jsx";
 import { colors } from "../ui/colors.js";
 import { NO_FILTERS, genres, genreLabel } from "../state/catalog.js";
 import { Menu, MenuItem, MenuDivider } from "../ui/Menu.jsx";
-import { openWebSettings } from "../vortex-web/integration/WebPanel.jsx";
-import { SIDEBAR, destination, currentSection } from "./navigation.js";
+import { SIDEBAR } from "./navigation.js";
 import { useStoreActions } from "../state/store.jsx";
 import { VERSION } from "../version.js";
 export function NativeSidebar({
   section,
+  current,
+  activate,
   filters,
   on,
   down,
@@ -22,7 +23,6 @@ export function NativeSidebar({
   onReturn,
 }) {
   const { setQuery } = useStoreActions();
-  const current = currentSection(top.name, section, filters);
   const hidden = immersive || ["game", "search", "files"].includes(top.name);
   const item = (id, label, press, key) =>
     jsx(
@@ -123,9 +123,7 @@ export function NativeSidebar({
                 children: jsx(Logo, {}),
               }),
               ...SIDEBAR.map((row) =>
-                item(row.id, row.label, () =>
-                  destination(row.id, NO_FILTERS, on, openWebSettings),
-                ),
+                item(row.id, row.label, () => activate(row.id)),
               ),
               item("search", "Search", on.search),
               item("top", "Top rated", on.top),

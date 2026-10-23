@@ -13,7 +13,7 @@ class NativeShellContracts(unittest.TestCase):
                 path=root/name;path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes((overlay.ROOT/name).read_bytes())
             with patch.object(overlay,'ROOT',root):
                 overlay.verify()
-                for name in ['app/state/nav.jsx','app/ui/GameCard.jsx']:
+                for name in ['app/state/nav.jsx','app/ui/GameCard.jsx','ps5-react/runtime/js/focus/scroll.js','ps5-react/native/ps5/native_host.cpp']:
                     path=root/name;original=path.read_bytes();path.write_bytes(original+b'\n// changed controller contract\n')
                     with self.assertRaisesRegex(ValueError,'shell incompatible'):overlay.verify()
                     path.write_bytes(original)

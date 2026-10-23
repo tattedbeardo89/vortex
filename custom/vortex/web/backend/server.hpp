@@ -17,6 +17,10 @@
 #include <string>
 #include <vector>
 
+#ifndef VORTEX_WEB_TRANSPORT_ONLY
+#include "digest.hpp"
+#endif
+
 namespace vortex_web {
 using Clock = std::chrono::steady_clock;
 constexpr std::size_t kHeader = 8192, kBody = 16384, kResponse = 2*1024*1024;
@@ -232,9 +236,39 @@ inline JSValue reply(JSContext* ctx,JSValueConst,int argc,JSValueConst* argv) {
   if(cookie.find_first_of("\r\n")!=std::string::npos)return JS_ThrowTypeError(ctx,"Invalid response cookie");
   server.reply(id,status,string_arg(ctx,argv[2]),string_arg(ctx,argv[3]),cookie.empty()?"":"Set-Cookie: "+cookie+"\r\n");return JS_UNDEFINED;
 }
+// Narrow read-only diagnostic: no arbitrary paths and no credential/state files.
+inline JSValue artwork_hash(JSContext* ctx,JSValueConst,int argc,JSValueConst* argv) {
+  if(argc!=2)return JS_ThrowTypeError(ctx,"Artwork hash needs location and filename");
+  const auto location=string_arg(ctx,argv[0]), name=string_arg(ctx,argv[1]);
+  if((location!="mounted" && location!="registered" && location!="staged" && location!="staged-icon") ||
+     (name!="icon0.png" && name!="pic0.dds" && name!="pic1.dds"))
+    return JS_ThrowTypeError(ctx,"Artwork diagnostic path refused");
+  if(location=="staged-icon" && name!="icon0.png")return JS_ThrowTypeError(ctx,"Staged root contains only the icon");
+  const auto base=location=="mounted" ? "/app0/sce_sys/" : location=="registered" ? "/user/appmeta/PPSA99189/" : location=="staged" ? "/user/app/PPSA99189/sce_sys/" : "/user/app/PPSA99189/";
+  const auto path=std::string(base)+name;
+  char resolved[4096]{};
+  if(!host::resolve_path(path.c_str(),resolved,sizeof resolved))return JS_NULL;
+  const int fd=open(resolved,O_RDONLY|O_NOFOLLOW);
+  if(fd<0)return JS_NULL;
+  integrity::Hash hash;
+  std::array<char,65536> bytes{};
+  std::size_t total=0;
+  bool good=true;
+  for(;;) {
+    const auto count=read(fd,bytes.data(),bytes.size());
+    if(count<0 && errno==EINTR)continue;
+    if(count<0){good=false;break;}
+    if(count==0)break;
+    total+=static_cast<std::size_t>(count);
+    if(total>10*1024*1024 || !hash.update(bytes.data(),static_cast<std::size_t>(count))){good=false;break;}
+  }
+  close(fd);
+  const auto digest=good ? hash.finish() : std::string{};
+  return digest.empty()?JS_NULL:JS_NewStringLen(ctx,digest.data(),digest.size());
+}
 inline void install(JSContext* ctx,JSValue global) {
   JSValue api=JS_NewObject(ctx);JS_SetPropertyStr(ctx,api,"abi",JS_NewInt32(ctx,1));
-  for(const auto& fn:std::vector<std::pair<const char*,JSCFunction*>>{{"start",start},{"stop",stop},{"random",random},{"poll",poll},{"reply",reply}})
+  for(const auto& fn:std::vector<std::pair<const char*,JSCFunction*>>{{"artworkHash",artwork_hash},{"start",start},{"stop",stop},{"random",random},{"poll",poll},{"reply",reply}})
     JS_SetPropertyStr(ctx,api,fn.first,JS_NewCFunction(ctx,fn.second,fn.first,5));
   JS_SetPropertyStr(ctx,global,"__vortexWebNative",api);
 }

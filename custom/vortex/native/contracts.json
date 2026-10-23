@@ -7,5 +7,12 @@
   "app/homebrew/HomebrewScreen.jsx": "c4446706050b1158c776eed30af54d95e951a28c3c7591e639a3bea1f7e54d03",
   "app/browse/Spotlight.jsx": "c21361b3aab56325bff85743f0bc89369ac2064a4ec61372337dacb0525ccd7c",
   "app/downloads/DownloadsScreen.jsx": "706cee5ea44cc866dfb9ce59eb1921c56aef4fc18b8edcfce5f177df0aab2ea8",
-  "app/ui/GameCard.jsx": "ea20c9fac62eb92ab05a2adbf37bf619be631e6d5f8c6e18fefd2f071cf29abf"
+  "app/ui/GameCard.jsx": "ea20c9fac62eb92ab05a2adbf37bf619be631e6d5f8c6e18fefd2f071cf29abf",
+  "ps5-react/runtime/js/focus/scroll.js": "962657fe56e1f8ddd8446b361ff34bffd29b7d65cb4e90b6386e1024347c8540",
+  "ps5-react/runtime/js/focus/scroll-frame.js": "53b727c192e6616798eb2830c4b6bb3d4bf1144a5b859f5c6711ed5cfccc0323",
+  "ps5-react/runtime/js/focus/manager.js": "a8a7800dba0504495ece2b3a6e879a9e9d583db48d4628cf9a93a53d131ee53d",
+  "ps5-react/runtime/js/focus/scope.js": "d2833e641dd2cb8b45b5c21ade7a0aac1970b9e76e056fe92bc66a8bbfaa676e",
+  "ps5-react/runtime/js/focus/frames.js": "76e5e4e22a5edc5badf51525d1ad339e2785ba8a58730bce6e3c7d3ad10d8b89",
+  "ps5-react/native/shared/digest.hpp": "7e821d9d3c7467c28b4233671d70bb51bb9faed491354dfba0d3e94bc3ec6a3d",
+  "ps5-react/native/ps5/native_host.cpp": "cbc1ae621e11756f7fe65a6d5892cbc87f5e18480b95ddefa91ba0e00b086a13"
 }

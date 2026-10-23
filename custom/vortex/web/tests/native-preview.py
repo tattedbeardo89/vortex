@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(ROOT/'custom/vortex'))
 from overlay import prepare
 from web.integration.overlay import framework_overlay
+from native.acceptance import run as controller_acceptance
 
 
 def main():
@@ -72,6 +73,9 @@ def main():
         elif not args.running:
             subprocess.run([*drive, 'start', '--app-dir', str(app)], cwd=framework, env=env, check=True)
         control('wait 6000')
+        for _ in range(100):
+            if any(row.get('text')=='Discover' and row.get('visible') for row in records()): break
+            control('wait 100')
         # Real controller/focus layout probe; no raster screenshots or browser embedding.
         labels=['Discover','All Games','PlayStation 5','PlayStation 4','Homebrew','Favorites','Downloads','Settings & Devices']
         for label in labels:
@@ -94,7 +98,7 @@ def main():
         control('focus '+cards[0]['focusKey']);control('press left');control('wait 100')
         assert any(r.get('focusKey')=='nav:current' and r.get('focused') for r in records()), 'First-column Left did not reach sidebar'
         control('press r1');control('wait 200')
-        assert any(r.get('focusKey')=='nav:current' and r.get('text')=='Top rated' for r in records()), 'Shoulder navigation was not preserved'
+        assert any(r.get('focusKey')=='nav:current' and r.get('text')=='Homebrew' for r in records()), 'PS4 + R1 did not open Homebrew'
         control('focus nav:discover');control('press confirm');control('wait 300')
         # Search and detail screens retain full-width native keyboard/media layouts and Circle back.
         control('focus nav:genres');control('press confirm');control('wait 300')
@@ -106,6 +110,7 @@ def main():
         assert control('focus nav:current').strip()=='ok', 'Full-width Back was masked by an inert sidebar focus alias'
         control('press down');control('wait 100')
         control('press back');control('wait 300')
+        navigation_report=controller_acceptance(control,records)
         assert control('focus nav:downloads').strip()=='ok'
         control('press confirm');control('wait 200');control('press back');control('wait 200')
         focused = control('focus nav:vortex-web').strip()
@@ -116,6 +121,9 @@ def main():
         select('Enable Vortex Web')
         code_row = next((row for row in records() if row.get('focusKey') == 'web:pair-code'), None)
         assert code_row, 'Native listener failed to produce a console pairing code'
+        control('focus web:pair-code');control('wait 500')
+        visible_code=next(r for r in records() if r.get('focused'))
+        assert visible_code['x']>=352 and visible_code['y']>=32 and visible_code['x']+visible_code['width']<=1888 and visible_code['y']+visible_code['height']<=1048, 'Pairing code is not fully inside the Settings viewport'
         code = re.search(r'Pairing code: ([A-F0-9]{8})', code_row['text']).group(1)
         status, html, _ = api('GET', '/')
         assert status == 200 and 'Vortex' in html
@@ -157,6 +165,17 @@ def main():
         select('Disable Vortex Web')
         select('Enable Vortex Web')
         assert api('GET','/api/v1/auth/session')[0] == 200, 'Pairing did not survive native listener restart'
+        select('Generate one-time pairing code')
+        row=next(row for row in records() if row.get('focusKey')=='web:pair-code')
+        extra_code=re.search(r'Pairing code: ([A-F0-9]{8})',row['text']).group(1)
+        extra_status,_,extra_cookie=api('POST','/api/v1/auth/pair',{'code':extra_code,'name':'Native UI revoke'})
+        assert extra_status==200
+        select('Revoke Native UI revoke')
+        original_headers=dict(headers)
+        headers['Cookie']=extra_cookie.split(';')[0]
+        assert api('GET','/api/v1/auth/session')[0]==401, 'Native device revoke did not invalidate the selected browser'
+        headers.clear();headers.update(original_headers)
+        assert api('GET','/api/v1/auth/session')[0]==200, 'Targeted native revocation affected another browser'
         assert api('POST','/api/v1/auth/logout',{})[0] == 200
         assert api('GET','/api/v1/status')[0] == 401
         select('Disable Vortex Web')
@@ -167,7 +186,7 @@ def main():
         else:
             raise AssertionError('Native listener remained reachable after disabling')
         report = {'transport':'actual desktop native listener and QuickJS application', 'hardwareTested':False,
-                  'counts':info['counts'],'development':False,'sharedFavorites':True,'actualQueueRead':True,
+                  'navigation':navigation_report,'nativeDeviceRevoke':True,'pairingCodeBoundsMeasured':True,'counts':info['counts'],'development':False,'sharedFavorites':True,'actualQueueRead':True,
                   'transfersTested':False,'pairingRevocationAndShutdown':True,'persistentPairingAcrossListenerRestart':True,'angularVPackaged':True,'nativeSidebarControllerAndSafeArea':True,'persistentPairingAcrossNativeProcessRestart':not args.running and not args.no_build,'durableStorageProbe':True,'buildMetadataConsistent':True}
         (ROOT/'.vortex/web-native-preview.json').write_text(json.dumps(report,indent=2)+'\n')
         print('PASS: actual native/QuickJS static assets, pairing, catalog, shared favorites, queue read, rejection, logout and shutdown')
