@@ -80,8 +80,14 @@ def main():
         assert control('focus nav:ps4').strip()=='ok'
         control('press confirm');control('wait 400')
         assert any(r.get('focusKey')=='nav:current' and r.get('text')=='PlayStation 4' for r in records())
-        cards=[r for r in records() if (r.get('focusKey') or '').startswith('card:') and r.get('visible')]
-        assert cards and all(r['x']>=320 and r['x']+r['width']<=1888 for r in cards), 'Native catalog overlaps sidebar or television safe area'
+        cards=[]
+        # FocusRequest/virtual-list filling is asynchronous. Wait for actual usable geometry,
+        # keeping the same strict bounds rather than assuming a fixed 400ms settles every runner.
+        for _ in range(30):
+            cards=[r for r in records() if (r.get('focusKey') or '').startswith('card:') and r.get('visible')]
+            if cards and all(r['x']>=320 and r['x']+r['width']<=1888 for r in cards):break
+            control('wait 100')
+        assert cards and all(r['x']>=320 and r['x']+r['width']<=1888 for r in cards), 'Native catalog overlaps sidebar or television safe area: '+str([(r.get('focusKey'),r['x'],r['width']) for r in cards])
         control('focus '+cards[0]['focusKey']);control('press confirm');control('wait 300')
         control('press back');control('wait 400')
         assert any(r.get('focusKey')==cards[0]['focusKey'] and r.get('focused') for r in records()), 'Detail Back lost the original game-card focus'
@@ -97,6 +103,8 @@ def main():
         control('focus nav:language');control('press confirm');control('wait 200')
         control('press back');control('wait 200')
         control('focus nav:search');control('press confirm');control('wait 300')
+        assert control('focus nav:current').strip()=='ok', 'Full-width Back was masked by an inert sidebar focus alias'
+        control('press down');control('wait 100')
         control('press back');control('wait 300')
         assert control('focus nav:downloads').strip()=='ok'
         control('press confirm');control('wait 200');control('press back');control('wait 200')

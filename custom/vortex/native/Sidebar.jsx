@@ -7,6 +7,7 @@ import { NO_FILTERS, genres, genreLabel } from "../state/catalog.js";
 import { Menu, MenuItem, MenuDivider } from "../ui/Menu.jsx";
 import { openWebSettings } from "../vortex-web/integration/WebPanel.jsx";
 import { SIDEBAR, destination, currentSection } from "./navigation.js";
+import { useStoreActions } from "../state/store.jsx";
 import { VERSION } from "../version.js";
 export function NativeSidebar({
   section,
@@ -20,6 +21,7 @@ export function NativeSidebar({
   setBrowsing,
   onReturn,
 }) {
+  const { setQuery } = useStoreActions();
   const current = currentSection(top.name, section, filters);
   const hidden = immersive || ["game", "search", "files"].includes(top.name);
   const item = (id, label, press, key) =>
@@ -28,7 +30,7 @@ export function NativeSidebar({
       {
         focusKey:
           key ||
-          (id === current
+          (!hidden && id === current
             ? "nav:current"
             : id === "catalog"
               ? "nav:browse"
@@ -71,7 +73,10 @@ export function NativeSidebar({
       hidden && !immersive
         ? jsx(View, {
             focusKey: "nav:current",
-            onPress: onReturn,
+            onPress: () => {
+              if (top.name === "search") setQuery("");
+              onReturn();
+            },
             nextFocusDown: down,
             style: {
               position: "absolute",
