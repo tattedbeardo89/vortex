@@ -5,7 +5,7 @@
   "upstream": "MyLuxy/overdrive",
   "titleId": "PPSA99189",
   "contentId": "UP9000-PPSA99189_00-VORTEXPS50000000",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "artifact": "Vortex.exfat",
   "updateAsset": "update.zip",
   "volumeLabel": "VORTEX",

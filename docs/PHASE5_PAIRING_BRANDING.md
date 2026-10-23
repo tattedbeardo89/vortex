@@ -54,3 +54,8 @@ Build source **6200929b0cfaec1472bcafca0608f0e2714e04d7** passed identity, basel
 Download [Vortex.exfat, update.zip, source and reports](https://github.com/tattedbeardo89/vortex/actions/runs/39885361789/artifacts/12471889874) and the [independent verification report](https://github.com/tattedbeardo89/vortex/actions/runs/39885836266/artifacts/12473005306). GitHub access is required and artifacts expire according to retention. Image SHA-256: `9581a2881c52d639df0dc1f7858cda0778567f30045ce9d96ac0e0ffa03eab2c`; update ZIP SHA-256: `37f8bd9280f23007bf5443f528cac113bcc509c14ae906767a4acb0aa2dc6d1a`. Follow-up validation-report commits change documentation only; artifact provenance remains this build commit. Final PR-head checks are linked from PR #5.
 
 No merge, release or deployment was performed. Physical PS5 operation and actual provider reachability are not established by these tests.
+
+
+## Follow-up storage and native-shell repair
+
+The earlier logical download0 path above describes PR #5. Version 1.2.1 uses an explicit stable PS5 `/data/vortex/PPSA99189/web` directory with one-time migration, compiled/mounted build identity, controller sidebar and non-destructive registered-artwork refresh. See [native-shell investigation and operator steps](NATIVE_SHELL_RECOVERY.md). Physical PS5 durability remains an operator check.

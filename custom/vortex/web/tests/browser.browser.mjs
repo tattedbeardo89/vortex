@@ -62,6 +62,14 @@ for (const project of selected)
         page.on("pageerror", (error) => errors.push(error.message));
         await page.goto(`http://127.0.0.1:${port}/`);
         await page.locator("#pair-dialog[open]").waitFor();
+        assert.match(
+          await page.locator("#pair-dialog").textContent(),
+          /30 days/,
+        );
+        assert.doesNotMatch(
+          await page.locator("#pair-dialog").textContent(),
+          /one hour|when Vortex closes/,
+        );
         const { code } = JSON.parse(readFileSync(consoleFile));
         try {
           await page.locator("#pair-code").fill(code);
@@ -126,6 +134,14 @@ for (const project of selected)
         assert.match(
           await page.locator("main").textContent(),
           new RegExp(`${project} test browser`),
+        );
+        assert.match(
+          await page.locator("main").textContent(),
+          /Frontend matches backend build identity/,
+        );
+        assert.match(
+          await page.locator("main").textContent(),
+          /pairing schema 1/,
         );
         for (const width of [768, 390]) {
           await page.setViewportSize({ width, height: 844 });

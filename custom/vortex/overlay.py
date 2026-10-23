@@ -112,6 +112,10 @@ def prepare():
                   'customizedSources': contracts, 'upstreamBaseline': baseline, 'themedSources': themed}
         (stage / '.vortex-generated.json').write_text(json.dumps(report, indent=2) + '\n')
         web_overlay(stage, baseline)
+        from native.overlay import apply as native_overlay
+        native_overlay(stage)
+        from build_info import generate as generate_build
+        generate_build(stage,brand,baseline)
         audit_generated(stage)
         if OUTPUT.exists():
             if not (OUTPUT / '.vortex-generated.json').is_file():

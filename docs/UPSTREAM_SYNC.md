@@ -32,3 +32,10 @@ The web implementation lives in `custom/vortex/web`, independently of imported a
 `npm run test:web` is a required synchronization check in addition to identity, theme, original application tests and selected-snapshot catalog parity. Tests simulate modified queue/native/Header inputs and verify fail-closed behavior. The validation workflow also builds web assets and runs browser tests. Review a changed upstream contract, adapt the narrow adapter, then deliberately update the recorded hash with behavioral evidence. The core ABI is not replaced. Incompatible updates stay unmerged in integration PRs; the previous working release remains available. No automatic merge, force-push or removal of Web is authorized.
 
 Phase 5 keeps the Angular V master/generator and persistent pairing implementation under `custom/vortex`, outside upstream snapshot paths. Snapshot regressions preserve every tracked Web/branding file and revalidate contracts. See PHASE5_PAIRING_BRANDING.md.
+
+
+## Native shell and reusable validation permissions
+
+Native UI sources live under `custom/vortex/native`; exact native navigation/card/layout contracts fail preparation on incompatible upstream changes. Snapshot regressions retain this tree alongside Web, pairing and artwork. Source baseline hashes are not automatically refreshed.
+
+A post-PR-5 scheduled/manual sync could not start: GitHub reported that nested `requested-log-diagnostics` requests `actions: read` while its caller allows `actions: none`. The integration-validation caller now grants only the additional read permission required by the existing reusable workflow; sync's write permissions and draft-PR behavior are unchanged. A manual `validation_only=true` mode exercises the exact reusable validation graph against the current ref without integration or PR creation. Its default is false, so scheduled/normal sync behavior remains unchanged. It does not suppress or weaken any validation tests.

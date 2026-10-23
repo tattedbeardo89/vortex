@@ -43,6 +43,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Record a fixed application build timestamp
+        run: echo "VORTEX_BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
       - name: Install pinned-compatible toolchain
         run: |
           sudo apt-get update
@@ -69,6 +71,9 @@ jobs:
           mkdir -p .vortex/release
           cp Vortex.exfat update.zip vortex-update.json .vortex/release/
           cp .vortex/web-frontend.json .vortex/validation.json .vortex/catalog-parity.json custom/vortex/upstream-baseline.json ps5-react/dist/PPSA99189.receipt.json .vortex/release/
+          mkdir -p .vortex/release/metadata .vortex/release/branding
+          cp ps5-react/dist/PPSA99189/VORTEX-BUILD.json ps5-react/dist/PPSA99189/VORTEX-BRANDING.json ps5-react/dist/PPSA99189/VORTEX-WEB.json .vortex/release/metadata/
+          cp ps5-react/dist/PPSA99189/sce_sys/icon0.png ps5-react/dist/PPSA99189/sce_sys/pic0.dds ps5-react/dist/PPSA99189/sce_sys/pic1.dds .vortex/release/branding/
           git archive --format=tar --output=.vortex/release/Vortex-source.tar HEAD
       - uses: actions/upload-artifact@v4
         with:

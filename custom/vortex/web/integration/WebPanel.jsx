@@ -1,12 +1,20 @@
 import "../../assets/Inter-Regular.ttf";
 import { jsx, jsxs, Fragment } from "react/jsx-runtime";
 import { useEffect, useRef, useState } from "react";
-import { FocusScope, ScrollView, Text, View } from "@ps5-react/core";
+import {
+  FocusScope,
+  ScrollView,
+  Text,
+  View,
+  FileSystem,
+  Platform,
+} from "@ps5-react/core";
 import { useWishlist, useStoreActions } from "../../state/store.jsx";
 import { NavItem } from "../../ui/NavItem.jsx";
 import { Button2 } from "../../ui/Button.jsx";
 import { colors } from "../../ui/colors.js";
 import { nativeState } from "./native-adapter.js";
+import { refreshArtwork } from "./artwork.js";
 import * as service from "./console-service.js";
 let open = false;
 const openListeners = new Set();
@@ -14,6 +22,7 @@ const show = (value) => {
   open = value;
   for (const listener of openListeners) listener(value);
 };
+export const openWebSettings = () => show(true);
 export function WebControl() {
   return jsx(NavItem, {
     focusKey: "nav:vortex-web",
@@ -27,6 +36,7 @@ export function WebPanel() {
     actions = useStoreActions();
   const wish = useRef(wishlist);
   wish.current = wishlist;
+  const [artworkMessage, setArtworkMessage] = useState("");
   const [opened, setOpened] = useState(open),
     [info, setInfo] = useState(service.snapshot());
   useEffect(() => {
@@ -91,7 +101,53 @@ export function WebPanel() {
         children: jsxs(View, {
           style: { gap: 20 },
           children: [
-            text("Vortex Web", 42),
+            text("Settings & Devices · Vortex Web", 42),
+            text(`Vortex ${info.build?.version} · ${info.build?.commit}`, 20),
+            text(
+              `Mounted assets: ${info.build?.mountedAssetsMatch ? "match compiled application" : "MISMATCH"} · ${info.build?.mountedBuildCommit}`,
+              20,
+            ),
+            text(
+              `Build ${info.build?.buildDate} (${info.build?.dateBasis})`,
+              20,
+            ),
+            text(
+              `Upstream ${info.build?.upstream?.version} · ${info.build?.upstream?.commit}`,
+              20,
+            ),
+            text(
+              `Web ${info.build?.webFrontendId} · API ${info.build?.apiVersion} · pairing schema ${info.build?.pairingSchema}`,
+              18,
+            ),
+            text(`Branding ${info.build?.brandingRevision}`, 18),
+            text(
+              `Durable storage: ${info.storage?.writable ? "read/write probe passed" : "unavailable"} · ${info.storage?.directory}`,
+              20,
+            ),
+            text(
+              "A write/read probe does not prove survival across PS5 reboot. Compare the build commit above with the downloaded image.",
+              20,
+              colors.muted,
+            ),
+            jsx(Button2, {
+              label: "Check durable storage",
+              onPress: () => service.checkStorage(),
+            }),
+            Platform.OS === "ps5"
+              ? jsx(Button2, {
+                  label: "Refresh registered PS5 artwork (back up originals)",
+                  onPress: () => {
+                    try {
+                      setArtworkMessage(
+                        refreshArtwork(FileSystem, Platform.OS),
+                      );
+                    } catch (error) {
+                      setArtworkMessage(error.message);
+                    }
+                  },
+                })
+              : null,
+            artworkMessage ? text(artworkMessage, 20) : null,
             text(
               info.running
                 ? "Local browser access is running"
@@ -180,7 +236,12 @@ export function WebPanel() {
               20,
               colors.muted,
             ),
-            info.error ? jsx(Button2, {label:"Reset all browser authorizations",onPress:()=>service.resetDevices()}) : null,
+            info.error
+              ? jsx(Button2, {
+                  label: "Reset all browser authorizations",
+                  onPress: () => service.resetDevices(),
+                })
+              : null,
             jsx(Button2, { label: "Close", onPress: () => show(false) }),
           ],
         }),

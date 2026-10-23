@@ -801,3 +801,10 @@ dialog label {
     transition: none !important;
   }
 }
+/* Commit/revision identifiers remain readable without widening the settings panel. */
+.settings-row > div {
+  min-width: 0;
+}
+.settings-row small {
+  overflow-wrap: anywhere;
+}

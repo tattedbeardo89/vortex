@@ -72,6 +72,42 @@ def main():
         elif not args.running:
             subprocess.run([*drive, 'start', '--app-dir', str(app)], cwd=framework, env=env, check=True)
         control('wait 6000')
+        # Real controller/focus layout probe; no raster screenshots or browser embedding.
+        labels=['Discover','All Games','PlayStation 5','PlayStation 4','Homebrew','Favorites','Downloads','Settings & Devices']
+        for label in labels:
+            row=next((r for r in records() if r.get('text')==label and r.get('visible')),None)
+            assert row and 32 <= row['x'] < 320 and row['x']+row['width'] <= 320, 'Sidebar layout/focus item missing: '+label
+        assert control('focus nav:ps4').strip()=='ok'
+        control('press confirm');control('wait 400')
+        assert any(r.get('focusKey')=='nav:current' and r.get('text')=='PlayStation 4' for r in records())
+        cards=[]
+        # FocusRequest/virtual-list filling is asynchronous. Wait for actual usable geometry,
+        # keeping the same strict bounds rather than assuming a fixed 400ms settles every runner.
+        for _ in range(30):
+            cards=[r for r in records() if (r.get('focusKey') or '').startswith('card:') and r.get('visible')]
+            if cards and all(r['x']>=320 and r['x']+r['width']<=1888 for r in cards):break
+            control('wait 100')
+        assert cards and all(r['x']>=320 and r['x']+r['width']<=1888 for r in cards), 'Native catalog overlaps sidebar or television safe area: '+str([(r.get('focusKey'),r['x'],r['width']) for r in cards])
+        control('focus '+cards[0]['focusKey']);control('press confirm');control('wait 300')
+        control('press back');control('wait 400')
+        assert any(r.get('focusKey')==cards[0]['focusKey'] and r.get('focused') for r in records()), 'Detail Back lost the original game-card focus'
+        control('focus '+cards[0]['focusKey']);control('press left');control('wait 100')
+        assert any(r.get('focusKey')=='nav:current' and r.get('focused') for r in records()), 'First-column Left did not reach sidebar'
+        control('press r1');control('wait 200')
+        assert any(r.get('focusKey')=='nav:current' and r.get('text')=='Top rated' for r in records()), 'Shoulder navigation was not preserved'
+        control('focus nav:discover');control('press confirm');control('wait 300')
+        # Search and detail screens retain full-width native keyboard/media layouts and Circle back.
+        control('focus nav:genres');control('press confirm');control('wait 300')
+        assert any(r.get('focused') and r.get('visible') and 'All Games' in r.get('text','') for r in records()), 'Genre menu did not receive modal focus'
+        control('press back');control('wait 200')
+        control('focus nav:language');control('press confirm');control('wait 200')
+        control('press back');control('wait 200')
+        control('focus nav:search');control('press confirm');control('wait 300')
+        assert control('focus nav:current').strip()=='ok', 'Full-width Back was masked by an inert sidebar focus alias'
+        control('press down');control('wait 100')
+        control('press back');control('wait 300')
+        assert control('focus nav:downloads').strip()=='ok'
+        control('press confirm');control('wait 200');control('press back');control('wait 200')
         focused = control('focus nav:vortex-web').strip()
         assert focused == 'ok', 'Web navigation focus failed: '+focused
         control('press confirm')
@@ -104,6 +140,19 @@ def main():
         status, text, _ = api('GET','/api/v1/downloads')
         assert status == 200 and json.loads(text)['development'] is False
         assert api('POST','/api/v1/downloads',{'gameId':game,'releaseId':'invalid','storageId':'invalid'})[0] == 400
+        status,text,_=api('GET','/api/v1/diagnostics')
+        diagnostic=json.loads(text)
+        assert status==200 and diagnostic['build']['pairingSchema']==1 and diagnostic['build']['nativeShell']==1
+        assert diagnostic['storage']['writable'] and 'devices' not in diagnostic and 'verifier' not in text
+        assert api('POST','/api/v1/diagnostics/storage',{})[0]==200
+        # Restart the actual native process, keeping its sandbox. This simulates a reboot's
+        # process loss and storage reconstruction, not a physical PS5 power-loss guarantee.
+        if not args.running and not args.no_build:
+            subprocess.run([*drive,'stop'],cwd=framework,env=env,check=True,stdout=subprocess.DEVNULL)
+            subprocess.run([*drive,'start','--app-dir',str(app)],cwd=framework,env=env,check=True,stdout=subprocess.DEVNULL)
+            control('wait 6000')
+            assert api('GET','/api/v1/auth/session')[0]==200, 'Browser authorization lost across native process restart'
+            control('focus nav:vortex-web');control('press confirm');control('wait 200')
         assert api('GET','/favicon.svg')[1] == (ROOT/'custom/vortex/branding/angular-v.svg').read_text()
         select('Disable Vortex Web')
         select('Enable Vortex Web')
@@ -119,7 +168,7 @@ def main():
             raise AssertionError('Native listener remained reachable after disabling')
         report = {'transport':'actual desktop native listener and QuickJS application', 'hardwareTested':False,
                   'counts':info['counts'],'development':False,'sharedFavorites':True,'actualQueueRead':True,
-                  'transfersTested':False,'pairingRevocationAndShutdown':True,'persistentPairingAcrossListenerRestart':True,'angularVPackaged':True}
+                  'transfersTested':False,'pairingRevocationAndShutdown':True,'persistentPairingAcrossListenerRestart':True,'angularVPackaged':True,'nativeSidebarControllerAndSafeArea':True,'persistentPairingAcrossNativeProcessRestart':not args.running and not args.no_build,'durableStorageProbe':True,'buildMetadataConsistent':True}
         (ROOT/'.vortex/web-native-preview.json').write_text(json.dumps(report,indent=2)+'\n')
         print('PASS: actual native/QuickJS static assets, pairing, catalog, shared favorites, queue read, rejection, logout and shutdown')
     finally:

@@ -3,6 +3,11 @@ on:
   schedule:
     - cron: '23 8 * * *'
   workflow_dispatch:
+    inputs:
+      validation_only:
+        description: Read-only compatibility validation of this ref; do not integrate or open upstream PRs
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -10,7 +15,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   sync:
-    if: github.repository == 'tattedbeardo89/vortex'
+    if: github.repository == 'tattedbeardo89/vortex' && !inputs.validation_only
     runs-on: ubuntu-24.04
     outputs:
       branch: ${{ steps.integrate.outputs.branch }}
@@ -40,9 +45,10 @@ jobs:
         run: python3 custom/vortex/sync.py
   validate-integration:
     needs: sync
-    if: always() && needs.sync.outputs.branch != ''
+    if: always() && (inputs.validation_only || needs.sync.outputs.branch != '')
     uses: ./.github/workflows/validate.yml
     permissions:
       contents: read
+      actions: read
     with:
-      target_ref: ${{ needs.sync.outputs.sha }}
+      target_ref: ${{ inputs.validation_only && github.sha || needs.sync.outputs.sha }}

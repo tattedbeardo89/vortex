@@ -11,9 +11,11 @@ import {
   openSync,
   fsyncSync,
   closeSync,
+  chmodSync,
 } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { register } from "node:module";
+import { probeStorage } from "../security/location.js";
 import { deviceStorage } from "../security/storage.js";
 import { createAuth } from "../security/auth.js";
 import { createRouter } from "./router.js";
@@ -36,31 +38,39 @@ const brand = JSON.parse(readFileSync(`${root}custom/vortex/brand.json`));
 const port = Number(process.env.VORTEX_WEB_DEV_PORT || 34189);
 if (!Number.isInteger(port) || port < 1024 || port > 65535)
   throw new Error("Invalid development port");
+const directory =
+  process.env.VORTEX_WEB_DEV_STATE ||
+  (process.env.VORTEX_WEB_DEV_CONSOLE
+    ? process.env.VORTEX_WEB_DEV_CONSOLE + ".devices"
+    : `${root}.vortex/dev-web-devices`);
+const devFs = {
+  exists: existsSync,
+  readFile: (p) => readFileSync(p, "utf8"),
+  mkdir: (p) => mkdirSync(p, { recursive: true, mode: 0o700 }),
+  chmod: chmodSync,
+  writeFile: (p, value) => {
+    const fd = openSync(p, "w", 0o600);
+    try {
+      writeFileSync(fd, value);
+      fsyncSync(fd);
+    } finally {
+      closeSync(fd);
+    }
+  },
+  rename: renameSync,
+  remove: (p) => rmSync(p, { force: true }),
+};
+let storageInfo = probeStorage(devFs, directory);
+const diagnostics = () => ({
+  build: JSON.parse(readFileSync(`${app}/VORTEX-BUILD.json`, "utf8")),
+  storage: storageInfo,
+});
 const auth = createAuth({
   random: (count) => randomBytes(count).toString("hex"),
   port: () => port,
-  storage: deviceStorage(
-    {
-      exists: existsSync,
-      readFile: (p) => readFileSync(p, "utf8"),
-      mkdir: (p) => mkdirSync(p, { recursive: true }),
-      writeFile: (p, value) => {
-        const fd = openSync(p, "w", 0o600);
-        try {
-          writeFileSync(fd, value);
-          fsyncSync(fd);
-        } finally {
-          closeSync(fd);
-        }
-      },
-      rename: renameSync,
-    },
-    process.env.VORTEX_WEB_DEV_STATE ||
-      (process.env.VORTEX_WEB_DEV_CONSOLE
-        ? process.env.VORTEX_WEB_DEV_CONSOLE + ".devices"
-        : `${root}.vortex/dev-web-devices`),
-  ),
+  storage: deviceStorage(devFs, directory),
 });
+
 let favorites = [];
 const state = createStateAdapter({
   catalog,
@@ -90,7 +100,17 @@ const state = createStateAdapter({
 const router = createRouter({
   auth,
   state,
-  settings: () => ({ port, binding: "127.0.0.1", readOnly: false }),
+  settings: () => ({
+    port,
+    binding: "127.0.0.1",
+    readOnly: false,
+    ...diagnostics(),
+  }),
+  diagnostics,
+  checkStorage: () => {
+    storageInfo = probeStorage(devFs, directory);
+    return diagnostics();
+  },
   readAsset: (name) => readFileSync(`${app}/vortex-web-assets/${name}`, "utf8"),
 });
 const server = http.createServer(

@@ -17,7 +17,9 @@ export function deviceStorage(fs, directory) {
     },
     save(value) {
       fs.mkdir(directory, { recursive: true });
+      fs.chmod?.(directory, 0o700);
       fs.writeFile(file + ".tmp", JSON.stringify(value), { sync: true });
+      fs.chmod?.(file + ".tmp", 0o600);
       fs.rename(file + ".tmp", file);
     },
   };
