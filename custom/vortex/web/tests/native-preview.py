@@ -82,12 +82,20 @@ def main():
         assert any(r.get('focusKey')=='nav:current' and r.get('text')=='PlayStation 4' for r in records())
         cards=[r for r in records() if (r.get('focusKey') or '').startswith('card:') and r.get('visible')]
         assert cards and all(r['x']>=320 and r['x']+r['width']<=1888 for r in cards), 'Native catalog overlaps sidebar or television safe area'
+        control('focus '+cards[0]['focusKey']);control('press confirm');control('wait 300')
+        control('press back');control('wait 400')
+        assert any(r.get('focusKey')==cards[0]['focusKey'] and r.get('focused') for r in records()), 'Detail Back lost the original game-card focus'
         control('focus '+cards[0]['focusKey']);control('press left');control('wait 100')
         assert any(r.get('focusKey')=='nav:current' and r.get('focused') for r in records()), 'First-column Left did not reach sidebar'
         control('press r1');control('wait 200')
         assert any(r.get('focusKey')=='nav:current' and r.get('text')=='Top rated' for r in records()), 'Shoulder navigation was not preserved'
         control('focus nav:discover');control('press confirm');control('wait 300')
         # Search and detail screens retain full-width native keyboard/media layouts and Circle back.
+        control('focus nav:genres');control('press confirm');control('wait 300')
+        assert any(r.get('focused') and r.get('visible') and 'All Games' in r.get('text','') for r in records()), 'Genre menu did not receive modal focus'
+        control('press back');control('wait 200')
+        control('focus nav:language');control('press confirm');control('wait 200')
+        control('press back');control('wait 200')
         control('focus nav:search');control('press confirm');control('wait 300')
         control('press back');control('wait 300')
         assert control('focus nav:downloads').strip()=='ok'

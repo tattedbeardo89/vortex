@@ -125,43 +125,7 @@ export function NativeSidebar({
               item("search", "Search", on.search),
               item("top", "Top rated", on.top),
               item("files", "Files", on.files),
-              jsx(View, {
-                style: { position: "relative" },
-                children: jsxs(View, {
-                  children: [
-                    item("genres", "Genres", () => setBrowsing(!browsing)),
-                    jsxs(Menu, {
-                      open: browsing,
-                      onClose: () => setBrowsing(false),
-                      rows: genres.length + 2,
-                      children: [
-                        jsx(MenuItem, {
-                          label: "All Games",
-                          autoFocus: !filters.genre.length,
-                          onSelect: () =>
-                            on.show(NO_FILTERS, "newest", undefined, "catalog"),
-                        }),
-                        jsx(MenuDivider, {}),
-                        ...genres.map((genre) =>
-                          jsx(
-                            MenuItem,
-                            {
-                              label: genreLabel(genre),
-                              checked: filters.genre.includes(genre),
-                              onSelect: () =>
-                                on.show(
-                                  { ...NO_FILTERS, genre: [genre] },
-                                  "newest",
-                                ),
-                            },
-                            genre,
-                          ),
-                        ),
-                      ],
-                    }),
-                  ],
-                }),
-              }),
+              item("genres", "Genres", () => setBrowsing(!browsing)),
               item("language", "Language & controls", onLanguage),
               jsx(Text, {
                 style: {
@@ -176,6 +140,44 @@ export function NativeSidebar({
           }),
         }),
       }),
+      browsing && !hidden
+        ? jsx(View, {
+            style: {
+              position: "absolute",
+              left: 320,
+              top: 32,
+              width: 360,
+              height: 0,
+              zIndex: 55,
+            },
+            children: jsxs(Menu, {
+              open: browsing,
+              onClose: () => setBrowsing(false),
+              rows: genres.length + 2,
+              children: [
+                jsx(MenuItem, {
+                  label: "All Games",
+                  autoFocus: !filters.genre.length,
+                  onSelect: () =>
+                    on.show(NO_FILTERS, "newest", undefined, "catalog"),
+                }),
+                jsx(MenuDivider, {}),
+                ...genres.map((genre) =>
+                  jsx(
+                    MenuItem,
+                    {
+                      label: genreLabel(genre),
+                      checked: filters.genre.includes(genre),
+                      onSelect: () =>
+                        on.show({ ...NO_FILTERS, genre: [genre] }, "newest"),
+                    },
+                    genre,
+                  ),
+                ),
+              ],
+            }),
+          })
+        : null,
     ],
   });
 }

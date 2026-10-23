@@ -228,3 +228,40 @@ test("production service and reconstructed module retain paired browser outside 
     delete globalThis.__vortexWebNative;
   }
 });
+test("a compiled/mounted build identity mismatch disables Web without erasing devices", async () => {
+  globalThis.__webFs = new Map();
+  globalThis.__webBuildOverride = { version: "older", commit: "different" };
+  let starts = 0;
+  globalThis.__vortexWebNative = {
+    abi: 1,
+    start: () => {
+      starts++;
+      return 34189;
+    },
+    stop: () => {},
+    random: (n) => randomBytes(n).toString("hex"),
+    poll: () => [],
+    reply: () => {},
+  };
+  const mismatch = await import(
+    "../integration/console-service.js?metadata-mismatch"
+  );
+  try {
+    mismatch.startService({});
+    mismatch.apply({
+      enabled: true,
+      port: 34189,
+      binding: "127.0.0.1",
+      readOnly: false,
+    });
+    assert.equal(mismatch.snapshot().running, false);
+    assert.equal(starts, 0);
+    assert.equal(mismatch.snapshot().build.mountedAssetsMatch, false);
+    assert.match(mismatch.snapshot().error, /metadata differ/);
+  } finally {
+    mismatch.stopService();
+    delete globalThis.__webBuildOverride;
+    delete globalThis.__vortexWebNative;
+    globalThis.__webFs.clear();
+  }
+});

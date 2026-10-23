@@ -499,13 +499,16 @@ async function settingsPage() {
       row(
         "Durable authorization storage",
         `${data.storage?.writable ? "Read/write probe passed" : "Unavailable / not probed"} · ${data.storage?.directory || "unknown"}. Reboot durability still requires a console check.`,
-        button("Check storage", async () => {
-          try {
-            await api("diagnostics/storage", {});
-            await loadPage();
-          } catch (error) {
-            notice(error.message);
-          }
+        el("button", {
+          text: "Check storage",
+          onclick: async () => {
+            try {
+              await api("diagnostics/storage", {});
+              await loadPage();
+            } catch (error) {
+              notice(error.message);
+            }
+          },
         }),
       ),
       row("Listening port", String(data.port)),
@@ -523,7 +526,7 @@ async function settingsPage() {
       row("Catalog revision", app.baseline.catalogRevision),
       el("p", {
         class: "muted",
-        text: "To change the port, binding, read-only mode or enable/disable access, open Web on the PS5. Changes revoke sessions. Vortex must remain open.",
+        text: "To change the port, binding, read-only mode or enable/disable access, open Web on the PS5. Listener changes keep unexpired paired devices. Authorization expires after 30 days of meaningful inactivity. Vortex must be open for network access.",
       }),
     ),
     el(
