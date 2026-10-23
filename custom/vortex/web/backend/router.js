@@ -14,8 +14,15 @@ export function createRouter({ auth, state, settings, readAsset }) {
   return async (req) => {
     let session;
     const json = (status, body, cookie = "") => {
-      if(status>=200 && status<300 && session && req.method==='POST' && !req.target.startsWith('/api/v1/auth/logout')) {
-        auth.touch(session.id);cookie=cookie||auth.renewal(req);
+      if (
+        status >= 200 &&
+        status < 300 &&
+        session &&
+        req.method === "POST" &&
+        !req.target.startsWith("/api/v1/auth/logout")
+      ) {
+        auth.touch(session.id);
+        cookie = cookie || auth.renewal(req);
       }
       const text = JSON.stringify(body);
       return text.length > 512 * 1024
@@ -65,10 +72,14 @@ export function createRouter({ auth, state, settings, readAsset }) {
       if (
         req.method !== "GET" &&
         settings().readOnly &&
-        !(["/api/v1/auth/logout","/api/v1/auth/activity"].includes(path) && req.method === "POST")
+        !(
+          ["/api/v1/auth/logout", "/api/v1/auth/activity"].includes(path) &&
+          req.method === "POST"
+        )
       )
         throw new WebError(403, "Vortex Web is read-only");
-      if (path === "/api/v1/auth/activity" && req.method === "POST") return json(200,{ok:true});
+      if (path === "/api/v1/auth/activity" && req.method === "POST")
+        return json(200, { ok: true });
       if (path === "/api/v1/auth/session" && req.method === "GET")
         return json(200, {
           apiVersion: 1,
@@ -126,13 +137,25 @@ export function createRouter({ auth, state, settings, readAsset }) {
         if (typeof body.id !== "string")
           throw new WebError(400, "Device id required");
         auth.revoke(body.id);
+        if (body.id === session.id) {
+          session = undefined;
+          return json(
+            200,
+            { ok: true },
+            "vortex_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0",
+          );
+        }
         return json(200, { ok: true });
       }
       throw new WebError(404, "Unknown endpoint or method");
     } catch (error) {
       return json(error instanceof WebError ? error.status : 500, {
         error: safeError(error),
-        ...(error instanceof WebError && error.status===401 && !req.target.startsWith("/api/v1/auth/pair") ? {code:"PAIRING_REQUIRED"} : {}),
+        ...(error instanceof WebError &&
+        error.status === 401 &&
+        !req.target.startsWith("/api/v1/auth/pair")
+          ? { code: "PAIRING_REQUIRED" }
+          : {}),
       });
     }
   };

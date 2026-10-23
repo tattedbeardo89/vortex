@@ -1,7 +1,17 @@
 // Explicitly development-only transport. Never imported by the PS5 bundle.
 import http from "node:http";
 import { randomBytes } from "node:crypto";
-import { mkdirSync, readFileSync, writeFileSync, rmSync, existsSync, renameSync, openSync, fsyncSync, closeSync } from "node:fs";
+import {
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+  rmSync,
+  existsSync,
+  renameSync,
+  openSync,
+  fsyncSync,
+  closeSync,
+} from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { register } from "node:module";
 import { deviceStorage } from "../security/storage.js";
@@ -29,9 +39,27 @@ if (!Number.isInteger(port) || port < 1024 || port > 65535)
 const auth = createAuth({
   random: (count) => randomBytes(count).toString("hex"),
   port: () => port,
-  storage: deviceStorage({exists:existsSync,readFile:p=>readFileSync(p,'utf8'),mkdir:p=>mkdirSync(p,{recursive:true}),writeFile:(p,value)=>{
-    const fd=openSync(p,'w',0o600);try{writeFileSync(fd,value);fsyncSync(fd);}finally{closeSync(fd);}
-  },rename:renameSync},process.env.VORTEX_WEB_DEV_STATE || (process.env.VORTEX_WEB_DEV_CONSOLE?process.env.VORTEX_WEB_DEV_CONSOLE+'.devices':`${root}.vortex/dev-web-devices`)),
+  storage: deviceStorage(
+    {
+      exists: existsSync,
+      readFile: (p) => readFileSync(p, "utf8"),
+      mkdir: (p) => mkdirSync(p, { recursive: true }),
+      writeFile: (p, value) => {
+        const fd = openSync(p, "w", 0o600);
+        try {
+          writeFileSync(fd, value);
+          fsyncSync(fd);
+        } finally {
+          closeSync(fd);
+        }
+      },
+      rename: renameSync,
+    },
+    process.env.VORTEX_WEB_DEV_STATE ||
+      (process.env.VORTEX_WEB_DEV_CONSOLE
+        ? process.env.VORTEX_WEB_DEV_CONSOLE + ".devices"
+        : `${root}.vortex/dev-web-devices`),
+  ),
 });
 let favorites = [];
 const state = createStateAdapter({

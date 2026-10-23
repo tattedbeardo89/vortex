@@ -104,6 +104,10 @@ def main():
         status, text, _ = api('GET','/api/v1/downloads')
         assert status == 200 and json.loads(text)['development'] is False
         assert api('POST','/api/v1/downloads',{'gameId':game,'releaseId':'invalid','storageId':'invalid'})[0] == 400
+        assert api('GET','/favicon.svg')[1] == (ROOT/'custom/vortex/branding/angular-v.svg').read_text()
+        select('Disable Vortex Web')
+        select('Enable Vortex Web')
+        assert api('GET','/api/v1/auth/session')[0] == 200, 'Pairing did not survive native listener restart'
         assert api('POST','/api/v1/auth/logout',{})[0] == 200
         assert api('GET','/api/v1/status')[0] == 401
         select('Disable Vortex Web')
@@ -115,7 +119,7 @@ def main():
             raise AssertionError('Native listener remained reachable after disabling')
         report = {'transport':'actual desktop native listener and QuickJS application', 'hardwareTested':False,
                   'counts':info['counts'],'development':False,'sharedFavorites':True,'actualQueueRead':True,
-                  'transfersTested':False,'pairingRevocationAndShutdown':True}
+                  'transfersTested':False,'pairingRevocationAndShutdown':True,'persistentPairingAcrossListenerRestart':True,'angularVPackaged':True}
         (ROOT/'.vortex/web-native-preview.json').write_text(json.dumps(report,indent=2)+'\n')
         print('PASS: actual native/QuickJS static assets, pairing, catalog, shared favorites, queue read, rejection, logout and shutdown')
     finally:

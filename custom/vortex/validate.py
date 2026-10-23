@@ -19,6 +19,7 @@ def validate_built(brand):
     assert param['contentVersion'] == config['version']
     assert param['localizedParameters']['en-US']['titleName'] == brand['name']
     assert receipt['title'] == brand['titleId'] and receipt['config'] == config
+    assert not any(Path(name).name=='web-devices.json' for name in receipt['files'])
     assert receipt['app'] == 'vortex' and not receipt['hardware_tested']
     branding=json.loads((app/'VORTEX-BRANDING.json').read_text())
     assert branding==json.loads((OUTPUT/'VORTEX-BRANDING.json').read_text())
@@ -27,7 +28,9 @@ def validate_built(brand):
     for name,record in branding['files'].items():
         assert digest(app/name)==record['sha256']
         with Image.open(app/name) as image:
-            assert list(image.size)==record['dimensions']==([512,512] if name.endswith('.png') else [1920,1080])
+            assert list(image.size)==record['dimensions']==([512,512] if name.endswith('.png') else [3840,2160])
+        if name.endswith('.dds'):
+            data=(app/name).read_bytes();assert data[84:88]==b'DX10' and int.from_bytes(data[128:132],'little')==98
     assert json.loads((app / 'VORTEX-WEB.json').read_text()) == json.loads((OUTPUT / 'VORTEX-WEB.json').read_text())
     for name, checksum in json.loads((app / 'VORTEX-WEB.json').read_text())['assets'].items():
         assert digest(app / 'vortex-web-assets' / name) == checksum

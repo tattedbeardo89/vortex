@@ -63,7 +63,11 @@ export function stopService() {
   if (timer) clearInterval(timer);
   timer = null;
   native?.stop();
-  try { auth?.flush(); } catch (failure) { error = failure.message; }
+  try {
+    auth?.flush();
+  } catch (failure) {
+    error = failure.message;
+  }
   auth = null;
   notify();
 }
@@ -163,13 +167,22 @@ export function pairCode() {
   notify();
 }
 export function revoke(id) {
-  try { auth?.revoke(id);error=""; } catch(failure) { error=failure.message; }
+  try {
+    auth?.revoke(id);
+    error = "";
+  } catch (failure) {
+    error = failure.message;
+  }
   notify();
 }
 
 // Console-only recovery. Never exposed as an unauthenticated HTTP endpoint.
 export function resetDevices() {
   stopService();
-  deviceStorage(FileSystem, `${FileSystem.dataDir}/vortex`).save({format:1,highWater:Date.now(),devices:[]});
+  deviceStorage(FileSystem, `${FileSystem.dataDir}/vortex`).save({
+    format: 1,
+    highWater: Date.now(),
+    devices: [],
+  });
   return apply(config);
 }

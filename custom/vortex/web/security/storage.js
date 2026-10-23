@@ -4,17 +4,21 @@ export function deviceStorage(fs, directory) {
   return {
     load() {
       if (!fs.exists(file)) {
-        if (fs.exists(file+'.tmp')) throw new Error('Interrupted device-state creation; reset Web security data on the console');
+        if (fs.exists(file + ".tmp"))
+          throw new Error(
+            "Interrupted device-state creation; reset Web security data on the console",
+          );
         return null;
       }
-      const text=fs.readFile(file);
-      if (text.length>32768) throw new Error('Device state exceeds its limit');
+      const text = fs.readFile(file);
+      if (text.length > 32768)
+        throw new Error("Device state exceeds its limit");
       return JSON.parse(text);
     },
     save(value) {
-      fs.mkdir(directory,{recursive:true});
-      fs.writeFile(file+'.tmp',JSON.stringify(value),{sync:true});
-      fs.rename(file+'.tmp',file);
+      fs.mkdir(directory, { recursive: true });
+      fs.writeFile(file + ".tmp", JSON.stringify(value), { sync: true });
+      fs.rename(file + ".tmp", file);
     },
   };
 }
