@@ -2,7 +2,7 @@
 import hashlib, io, json, struct, sys, zipfile
 from pathlib import Path
 from PIL import Image
-ROOT=Path(__file__).resolve().parents[2]
+ROOT=Path(__file__).resolve().parents[3]
 ART=Path(sys.argv[1]); RUN=sys.argv[2]; SOURCE=sys.argv[3]
 receipt_path=next(ART.rglob('PPSA99189.receipt.json'))
 receipt=json.loads(receipt_path.read_text())
@@ -49,13 +49,16 @@ for name,expected in receipt['files'].items():assert sha(read_file(name))==expec
 baseline=json.loads(read_file('VORTEX-BASELINE.json'))
 assert baseline==json.loads((ROOT/'custom/vortex/upstream-baseline.json').read_text())
 param=json.loads(read_file('sce_sys/param.json'));config=receipt['config']
+stage=ROOT/'.vortex/vortex'
+assert config==json.loads((stage/'app.json').read_text()), 'Receipt config differs from verified selected source'
+brand=json.loads((ROOT/'custom/vortex/brand.json').read_text())
 for key in ['titleId','contentId']:assert param[key]==config[key]
-assert param['contentVersion']==config['version']=='01.002.000'
-assert param['localizedParameters']['en-US']['titleName']=='Vortex'
+assert param['contentVersion']==config['version']
+assert param['localizedParameters']['en-US']['titleName']==brand['name']
 assert not any(Path(n).name=='web-devices.json' for n in files)
 assert b'__vortexWebNative' in read_file('eboot.bin')
 assert receipt['sources']['native/shared/vortex_web.hpp']==file_sha(ROOT/'custom/vortex/web/backend/server.hpp')
-stage=ROOT/'.vortex/vortex';expected={}
+expected={}
 for entry in config['resources']:
     if entry!='data' and not entry.startswith('data/'):continue
     source=stage/entry
@@ -84,7 +87,8 @@ with zipfile.ZipFile(ART/'update.zip') as package:
     assert manifest==json.loads((ART/'vortex-update.json').read_text())
     assert manifest['upstream']==baseline
     assert manifest['titleId']==param['titleId'] and manifest['contentId']==param['contentId']
-    assert manifest['version']=='1.2.0' and manifest['size']==image.stat().st_size
+    assert all(manifest[k]==brand[k] for k in ('name','repository','titleId','contentId','version'))
+    assert manifest['size']==image.stat().st_size
     with package.open('Vortex.exfat') as nested:assert hashlib.file_digest(nested,'sha256').hexdigest()==image_sha
 report={'format':1,'sourceCommit':SOURCE,'run':f'https://github.com/tattedbeardo89/vortex/actions/runs/{RUN}',
 'image':{'name':image.name,'bytes':image.stat().st_size,'sha256':image_sha},'update':{'name':'update.zip','bytes':(ART/'update.zip').stat().st_size,'sha256':file_sha(ART/'update.zip')},

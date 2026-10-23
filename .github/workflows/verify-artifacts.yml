@@ -28,6 +28,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -52,18 +54,20 @@ jobs:
           with open(os.environ['GITHUB_OUTPUT'],'a') as output: output.write('sha='+run['head_sha']+'\n')
           PY
       - name: Preserve verifier before checking out exact build source
-        run: cp tools/artifact-verification/verify.py "$RUNNER_TEMP/verify-vortex-artifacts.py"
+        run: cp custom/vortex/artifacts/verify.py "$RUNNER_TEMP/verify-vortex-artifacts.py"
       - uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           ref: ${{ steps.source.outputs.sha }}
           clean: true
       - name: Install pinned artwork dependency and reconstruct selected staged source
         run: |
+          set -euo pipefail
           python3 -m pip install -r ps5-react/requirements.txt
           npm ci --ignore-scripts --prefix ps5-react
           npm run build:web
-          mkdir -p tools/artifact-verification
-          cp "$RUNNER_TEMP/verify-vortex-artifacts.py" tools/artifact-verification/verify.py
+          mkdir -p custom/vortex/artifacts
+          cp "$RUNNER_TEMP/verify-vortex-artifacts.py" custom/vortex/artifacts/verify.py
       - uses: actions/download-artifact@v4
         with:
           github-token: ${{ github.token }}
@@ -74,7 +78,7 @@ jobs:
         env:
           SOURCE_RUN: ${{ inputs.run_id }}
           SOURCE_SHA: ${{ steps.source.outputs.sha }}
-        run: python3 tools/artifact-verification/verify.py artifact "$SOURCE_RUN" "$SOURCE_SHA"
+        run: python3 custom/vortex/artifacts/verify.py artifact "$SOURCE_RUN" "$SOURCE_SHA"
       - uses: actions/upload-artifact@v4
         with:
           name: Vortex-independent-verification

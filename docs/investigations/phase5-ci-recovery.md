@@ -1,0 +1,11 @@
+# Phase 5 CI recovery
+
+The artifact verifier introduced in `eabb182` was Vortex-only code mistakenly added under `tools/`, part of the exact upstream source contract. Overdrive v1.0.8 has no file at that path. Moving it to `custom/vortex/artifacts/verify.py` restores upstream source equality without excluding another path, accepting new hashes, or changing upstream files. Baseline validation correctly rejected the placement.
+
+The artifact workflow used the checkout action's default depth of one, twice. Baseline metadata refers to upstream commit `9f90d882771eb87f75579b10f951cc2dbe4daf2a`, whose application version lives at `app/version.js`. The missing history made Git report that the path existed on disk but not in the pinned commit. Both checkouts now fetch full history, including the second checkout of the exact build SHA. No path fallback or substitute version is used.
+
+`test_baseline_history.py` reproduces the exact failure using a real shallow Git fixture, restores history and proves the original version/catalog metadata resolve identically. A conflicting root-level version file proves the application path is used.
+
+The independent verifier reconstructs the selected source and compares receipt configuration with its staged application configuration. It checks image file inventory and every receipt hash, exact catalog resource paths/hashes, packaged metadata, Angular V provenance/assets, native Web ABI and assets, absence of pairing data, update identity/version/baseline, ZIP CRC and nested-image equality. Version and identity expectations come from verified staged configuration and protected brand metadata. No production input, catalog count, framework test, updater or compatibility contract was changed by these repairs.
+
+Fresh hosted full-suite validation, image packaging and independent verification are required after this repair. Final run/artifact evidence is recorded in the PR and `phase5-validation.json`; earlier artifacts are not substitutes.

@@ -108,13 +108,7 @@
     "abruptShutdownActivityLossMinutesAtMost": 5
   },
   "blocked": {
-    "githubActions": "HTTP 422: Actions has been disabled for this repository; integration cannot inspect/change admin settings",
-    "initialCiFailure": "Pillow absent in lightweight jobs; explicit pinned install fixed in 6eed77c",
-    "fullHostedFramework": "not completed; previous attempt cancelled",
-    "firefoxAndWebKit": "not rerun for this revision",
-    "Vortex.exfat": "not produced; requires enabled hosted Actions or a mount-capable Linux builder",
-    "update.zip": "not produced; requires verified fresh exFAT image",
-    "earlierPhase5Brief": "not supplied; native sidebar/download-failure specifics requested"
+    "hardware": "Physical PS5 validation has not been performed"
   },
   "hardwareTested": false,
   "releasePublished": false,
@@ -135,5 +129,11 @@
     "pairingRevocationAndShutdown": true,
     "persistentPairingAcrossListenerRestart": true,
     "angularVPackaged": true
+  },
+  "ciRecovery": {
+    "baselineFailure": "Vortex-only verifier relocated from upstream tools/ into protected custom/vortex/artifacts/; source contract unchanged",
+    "metadataFailure": "Both verifier checkouts fetch full history; real shallow-history regression reproduces exact missing app/version.js error",
+    "status": "Fresh full-suite/image/independent verification pending for repair commit",
+    "investigation": "docs/investigations/phase5-ci-recovery.md"
   }
 }
