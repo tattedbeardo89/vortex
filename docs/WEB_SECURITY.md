@@ -23,3 +23,7 @@ Frontend uses DOM text nodes for untrusted metadata, HTTPS-only remote artwork a
 ## Verification boundaries
 
 Automated tests exercise token/CSRF/Origin enforcement, expiry, revocation, rate limits, parser/size errors, socket clients, session isolation and upstream adapter contracts. Browser tests exercise real catalog data through the clearly identified development transport. Controlled queue tests are adapter tests, not PS5 downloads. PS5 entropy, OS sockets, storage actions, provider connectivity and lifecycle need hardware verification. Keep existing working artifacts and paired access disabled until that verification is satisfactory. Report implementation defects through the repository without posting tokens, pairing codes or signed artifact URLs.
+
+## Storage policy 2 (1.2.1)
+
+PS5 Web settings and device verifiers now live in `/data/vortex/PPSA99189/web`, never a writable title download0 image. Desktop uses its isolated `${FileSystem.dataDir}/vortex` sandbox. First upgrade migrates committed legacy snapshots once; the migration marker prevents later resurrection of stale snapshots. Directory permissions are restricted to 0700 and verifier files to 0600 using the native API. The authenticated diagnostic write/read probe does not establish physical PS5 power-loss durability. Compiled/mounted build identity mismatch disables Web; it does not discard device records. [Recovery and physical validation](NATIVE_SHELL_RECOVERY.md).

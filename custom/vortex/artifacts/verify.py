@@ -1,5 +1,6 @@
 """Independently read the hosted exFAT without mounting or modifying it."""
-import hashlib, io, json, struct, sys, zipfile
+import hashlib, io, json, struct, sys, zipfile, os
+from datetime import datetime
 from pathlib import Path
 from PIL import Image
 ROOT=Path(__file__).resolve().parents[3]
@@ -79,6 +80,20 @@ assert web==json.loads((stage/'VORTEX-WEB.json').read_text())
 for name,checksum in web['assets'].items():assert sha(read_file('vortex-web-assets/'+name))==checksum
 assert read_file('vortex-web-assets/favicon.svg')==(ROOT/'custom/vortex/branding/angular-v.svg').read_bytes()
 assert read_file('VORTEX-NOTICE.txt')==(ROOT/'custom/vortex/NOTICE.txt').read_bytes()
+build=json.loads(read_file('VORTEX-BUILD.json'))
+expected_build=json.loads((stage/'VORTEX-BUILD.json').read_text())
+for key in ['format','version','commit','upstream','webFrontendId','apiVersion','pairingSchema','brandingRevision','nativeShell','storagePolicy']:
+    assert build[key]==expected_build[key], 'Build identity differs: '+key
+assert build['commit']==SOURCE
+assert build['commit'].encode() in read_file('eboot.bin'), 'Compiled build identity missing'
+built_at=datetime.fromisoformat(build['buildDate'].replace('Z','+00:00'))
+if os.environ.get('VORTEX_SOURCE_RUN_CREATED') and build['dateBasis']=='build timestamp':
+    assert datetime.fromisoformat(os.environ['VORTEX_SOURCE_RUN_CREATED'].replace('Z','+00:00')) <= built_at <= datetime.fromisoformat(os.environ['VORTEX_SOURCE_RUN_UPDATED'].replace('Z','+00:00'))
+assert build['webFrontendId'].encode() in read_file('vortex-web-assets/index.html')
+assert b'Browser sessions expire after one hour' not in read_file('vortex-web-assets/index.html')
+assert b'30 days' in read_file('vortex-web-assets/index.html')
+for name in ['icon0.png','pic0.dds','pic1.dds']:
+    assert sha(read_file('sce_sys/'+name)) != file_sha(ROOT/'app/sce_sys'/name), 'Original upstream launch artwork retained'
 image_sha=file_sha(image)
 with zipfile.ZipFile(ART/'update.zip') as package:
     assert sorted(package.namelist())==['Vortex.exfat','vortex-update.json']
@@ -93,7 +108,7 @@ with zipfile.ZipFile(ART/'update.zip') as package:
 report={'format':1,'sourceCommit':SOURCE,'run':f'https://github.com/tattedbeardo89/vortex/actions/runs/{RUN}',
 'image':{'name':image.name,'bytes':image.stat().st_size,'sha256':image_sha},'update':{'name':'update.zip','bytes':(ART/'update.zip').stat().st_size,'sha256':file_sha(ART/'update.zip')},
 'receiptFilesVerifiedInsideExfat':len(files),'catalogResourcesVerified':len(actual),'branding':branding,'identity':param['titleId'],'contentVersion':param['contentVersion'],
-'webAssetsVerified':len(web['assets']),'nativeWebAbiPresent':True,'pairingDataAbsentFromPackage':True,'zipCrcAndImageEquality':True,'hardwareTested':False}
+'buildIdentity':build,'nativeShellRevision':build['nativeShell'],'webAssetsVerified':len(web['assets']),'nativeWebAbiPresent':True,'pairingDataAbsentFromPackage':True,'zipCrcAndImageEquality':True,'hardwareTested':False}
 output=ART/'independent-verification.json';output.write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(report,indent=2))
 summary={k:v for k,v in report.items() if k!='branding'}
 print('::notice title=Independent artifact verification::'+json.dumps(summary,separators=(',',':')))

@@ -1,9 +1,31 @@
-import { FileSystem } from "@ps5-react/core";
+import { FileSystem, Platform } from "@ps5-react/core";
 import { deviceStorage } from "../security/storage.js";
 import { createAuth } from "../security/auth.js";
 import { createRouter } from "../backend/router.js";
 import { nativeTransport } from "./native.js";
-const FILE = `${FileSystem.dataDir}/vortex/web.json`;
+import {
+  storageLocation,
+  prepareStorage,
+  probeStorage,
+} from "../security/location.js";
+import { readBuild } from "./build-info.js";
+const DIRECTORY = storageLocation(FileSystem, Platform.OS);
+const FILE = `${DIRECTORY}/web.json`;
+let storageInfo = {
+  accessible: false,
+  writable: false,
+  directory: DIRECTORY,
+  hardwareDurabilityVerified: false,
+};
+const build = readBuild(FileSystem);
+export function diagnostics() {
+  return { build, storage: { ...storageInfo } };
+}
+export function checkStorage() {
+  storageInfo = probeStorage(FileSystem, DIRECTORY);
+  notify();
+  return diagnostics();
+}
 const DEFAULT = {
   enabled: false,
   port: 34189,
@@ -30,6 +52,7 @@ export function subscribe(listener) {
 export function snapshot() {
   return {
     ...config,
+    ...diagnostics(),
     running: Boolean(timer),
     error,
     devices: auth?.devices() || [],
@@ -39,6 +62,13 @@ export function snapshot() {
 export function startService(adapter) {
   state = adapter;
   try {
+    storageInfo = prepareStorage(
+      FileSystem,
+      DIRECTORY,
+      `${FileSystem.dataDir}/vortex`,
+    );
+    if (!storageInfo.writable)
+      throw new Error("Durable Web storage unavailable");
     if (FileSystem.exists(FILE)) {
       const saved = JSON.parse(FileSystem.readFile(FILE));
       if (
@@ -90,17 +120,25 @@ export function apply(next, persist = true) {
   error = "";
   if (config.enabled)
     try {
+      if (!build.mountedAssetsMatch) throw new Error(build.error);
+      if (!checkStorage().storage.writable)
+        throw new Error(
+          "Durable Web storage is unavailable; repair console filesystem access",
+        );
       native = nativeTransport();
       port = native.start(config.binding, config.port);
       auth = createAuth({
         random: (count) => native.random(count),
         port: () => port,
-        storage: deviceStorage(FileSystem, `${FileSystem.dataDir}/vortex`),
+        storage: deviceStorage(FileSystem, DIRECTORY),
       });
       router = createRouter({
         auth,
         state,
+        diagnostics,
+        checkStorage,
         settings: () => ({
+          ...diagnostics(),
           port,
           binding: config.binding,
           readOnly: config.readOnly,
@@ -151,7 +189,7 @@ export function apply(next, persist = true) {
     }
   if (persist)
     try {
-      FileSystem.mkdir(`${FileSystem.dataDir}/vortex`, { recursive: true });
+      FileSystem.mkdir(DIRECTORY, { recursive: true });
       FileSystem.writeFile(`${FILE}.tmp`, JSON.stringify(config), {
         sync: true,
       });
@@ -180,7 +218,7 @@ export function revoke(id) {
 // Console-only recovery. Never exposed as an unauthenticated HTTP endpoint.
 export function resetDevices() {
   stopService();
-  deviceStorage(FileSystem, `${FileSystem.dataDir}/vortex`).save({
+  deviceStorage(FileSystem, DIRECTORY).save({
     format: 1,
     highWater: Date.now(),
     devices: [],

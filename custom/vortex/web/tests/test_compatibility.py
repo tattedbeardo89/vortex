@@ -51,7 +51,7 @@ class Compatibility(unittest.TestCase):
             (repo/'tools/web-sync-regression.txt').write_text('compatible upstream tooling addition\n')
             git('add','.');git('commit','-m','Compatible upstream candidate')
             git('checkout','vortex-test')
-            protected=list((repo/'custom/vortex/web').rglob('*'))+list((repo/'custom/vortex/branding').rglob('*'))+[repo/'custom/vortex'/name for name in ['branding.py','bc7.py','runtime/Logo.jsx','runtime/Splash.jsx']]
+            protected=list((repo/'custom/vortex/web').rglob('*'))+list((repo/'custom/vortex/branding').rglob('*'))+list((repo/'custom/vortex/native').rglob('*'))+[repo/'custom/vortex'/name for name in ['branding.py','bc7.py','runtime/Logo.jsx','runtime/Splash.jsx']]
             before={str(p.relative_to(repo)):p.read_bytes() for p in protected if p.is_file()}
             result=sync.integrate_snapshot(repo,'vortex-base','candidate')
             self.assertEqual(result['state'],'merged');self.assertIsNone(result['frameworkTestReview'])

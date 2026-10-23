@@ -112,6 +112,7 @@ test("static shell is public; every sensitive endpoint requires authentication",
     "settings",
     "dashboard",
     "facets",
+    "diagnostics",
   ])
     assert.equal(
       (await s.router(request("GET", "/api/v1/" + target))).status,

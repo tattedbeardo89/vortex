@@ -1,0 +1,50 @@
+# Vortex 1.2.1 native shell and installation recovery
+
+This repair starts from merged PR #5 (`cf9a1de` on main). It retains its Angular V and 30-day authorization implementation. Version 1.2.1 deliberately distinguishes the repair from earlier images labeled 1.2.0. Title/content IDs remain `PPSA99189` / `UP9000-PPSA99189_00-VORTEXPS50000000`.
+
+## Confirmed source findings and limits
+
+The previously provided artifact was built from `6200929`. Its independently inspected image has Angular V `sce_sys/icon0.png`, `pic0.dds`, `pic1.dds`, the Angular V React splash, and persistent 30-day authorization. The obsolete one-hour session sentence is absent. The user has not confirmed that this exact image is the one mounted on the PS5. Its version number alone cannot establish installation identity. Browser origin/IP changes and cleared/private browser storage can also prevent a cookie from being sent; authorization cannot safely transfer cookies between different hosts.
+
+The old native service persisted under logical `/download0/vortex`. Upstream `ps5-react/native/ps5/filesystem_access.cpp` keeps a writable download0 root and uses stable `/data/ps5-react/<title>` only when it fails a write test. Its comments explicitly describe download0 as a fixed image. Writability therefore did not establish independence from title remount/replacement. The repair always uses `/data/vortex/PPSA99189/web` on PS5, fails closed when unavailable, and migrates committed settings/device records once without overwriting a durable destination. A committed migration marker prevents later fallback to an old, potentially revoked authorization snapshot. Desktop remains in its isolated sandbox. Actual physical reboot/power-loss durability remains unverified here.
+
+ShadowMountPlus source inspected at `0794096dbfd5855d5b757e4708703671400bc9cf` (`src/sm_install.c`, `mount_and_install`) sets `restage_appmeta = (!is_remount || appmeta_missing)` and skips asset copying when cached files exist. Thus a normal remount can retain old `/user/appmeta/PPSA99189` artwork despite correct new mounted assets. This is a confirmed installer mechanism, not proof of which ShadowMount+ version/path the user's console executed.
+
+The PS5 native host hides the OS splash only after its first presented frame (`native_host.cpp`). It does not draw an Overdrive logo itself. The OS can consequently show registered pic0/pic1 before the React splash. All three image artwork files and React geometry are checked; provider artwork labeled “Overdrive CDN” is intentionally retained and is not boot branding.
+
+## Native shell and controls
+
+The protected native overlay adds Discover, All Games, PlayStation 5, PlayStation 4, Homebrew, Favorites, Downloads and Settings & Devices in a dark slate/indigo sidebar. Search, top-rated games, files, genre menu and language controls remain accessible. Original stores, filters, navigation stack, queue, provider eligibility, download screens, modal handlers and shoulder shortcuts remain in use. Browse/homebrew grids reflow to five columns; the hero and downloads heading fit the smaller content area. Normal browsing has 32px television safe margins. Native search, file management, game details and immersive media retain their original full-width layouts with a native Back control; no browser is embedded.
+
+The controller probe exercises actual QuickJS/native layout records, primary sidebar safe area, PS4 navigation, grid Left-to-sidebar focus, shoulder navigation, native search/back, Downloads/back, Web settings, process restart, persistent authorization, storage diagnostics and revocation. It produces no screenshots. This remains desktop native simulation, not a physical PS5/controller qualification.
+
+## Build and storage diagnostics
+
+Native Settings & Devices and authenticated Web settings report the compiled Git commit, version, build timestamp/basis, upstream baseline, frontend identifier, API version, branding revision and pairing schema. `VORTEX-BUILD.json` is packaged; the same identity is compiled into JavaScript, and a mismatch with mounted metadata disables Web rather than silently serving mixed files. CI supplies a fixed actual build timestamp; local reproducible builds use the explicitly labeled source commit timestamp. The public static frontend contains a revision meta tag and cache-busted JS/CSS paths. HTTP responses retain `Cache-Control: no-store`.
+
+Authenticated `GET /api/v1/diagnostics` returns non-secret build/storage status. Explicit CSRF-protected `POST /api/v1/diagnostics/storage` tests synced write, atomic rename, read-back and cleanup in the owned directory. It never returns device records, bearer tokens or verifiers. A successful probe is not proof of power-loss durability. GET/polling does not renew authorization. Existing 30-day inactivity, meaningful-activity renewal, clock validation, revocation, Origin/Host/CSRF and pairing controls remain enforced. Device state and settings use a private directory; verifier snapshots use mode 0600 where the native API is available.
+
+## Safe installation and artwork refresh
+
+1. Preserve the previous known-working image **outside every ShadowMount scan directory**. Close Vortex and any running game. Use ShadowMount+'s supported Unmount action for this title and verify it is no longer mounted before replacing its backing image. Do not overwrite a mounted image. If your loader cannot safely unmount it, stop the loader/use a powered-off USB replacement instead.
+2. Verify the downloaded exFAT SHA-256 against its independent report. Replace the one actual `Vortex.exfat` installation, retaining its name and title ID. Keep duplicate Vortex images/folder installs out of scan roots. Safely finish the copy, then start the loader/rescan or reconnect the USB as appropriate for its documented version. Do not use Uninstall/Delete Source or delete save/title data for this repair.
+3. Launch Vortex. Open **Settings & Devices**. The compiled commit must equal the fresh artifact's report, mounted metadata must match compiled identity, and durable storage must pass. An older/missing identity means the actual mounted/compiled installation still differs; use ShadowMount's title Info/Source view to find it. Do not clear pairing data to hide this discrepancy.
+4. If the native build identity is correct but the home-screen icon/initial splash remain old, use **Refresh registered PS5 artwork (back up originals)** in native Settings. This is console-only, never an HTTP command. It verifies both source and registered title/content IDs, requires existing expected files, backs up all three originals before changing anything, and atomically copies only `icon0.png`, `pic0.dds`, `pic1.dds` into `/user/appmeta/PPSA99189`. No database edits, title changes, directory deletion or user-data removal occur. If it fails, retain its error and backups; do not broaden permissions or delete data. Per-file replacement is atomic; the three-file group is not a filesystem transaction.
+5. Close Vortex and reboot/restart the PS5 shell normally to reload in-memory artwork. Re-enable the loader as usual. Verify the home icon, earliest OS launch image and later React splash separately. Normal ShadowMount remounts should retain the refreshed appmeta files. The precise behavior of the user's loader/firmware still needs physical confirmation.
+6. Reuse the same browser origin/host and retained browser data. Pair once if upgrading from a build that never saved verifiers. Verify that stopping Vortex reports **“Vortex is offline. Reopen Vortex on your PS5 to reconnect.”**, reopening reconnects automatically, reboot retains the device and manual revocation rejects it. Check the durable probe again after reboot. Private browsing, deleted cookies and a changed IP/hostname are separate browser-storage cases.
+
+Original registered artwork backups live at `/data/vortex/PPSA99189/artwork-backup`. To undo a refresh, with Vortex closed, restore **only** those three files to `/user/appmeta/PPSA99189` using the existing trusted console file manager, then restart the shell. Do not copy unrelated metadata or delete the Web/data directory.
+
+For a read-only independent comparison, export only static mounted files (`VORTEX-BUILD.json`, `sce_sys/`), and optionally the three registered artwork files. Never export `web-devices.json`. From a PC run:
+
+```sh
+python3 custom/vortex/inspect_installation.py --reference downloaded-artifact/metadata --mounted exported-title --registered exported-appmeta
+```
+
+The downloadable artifact's `metadata/` and `branding/` are reference files from the freshly built title. The audit compares mounted build commit and registered/mounted artwork hashes with that trusted manifest. It does not connect to the console or alter it.
+
+## Validation scope
+
+Fresh full framework, Vortex, Web, browser, native and packaging checks are required for the feature PR. The independent image verifier checks every receipt file, exact selected catalog resources, Angular V PNG/BC7 assets, compiled and mounted build metadata, frontend identity, absence of old launch artwork/one-hour HTML, update version/identity/CRC and equality of the standalone/nested exFAT. Counts remain computed from the selected v1.0.8 source: 1,148 commercial games (1,009 PS5 / 139 PS4); 104 homebrew entries refer to the recorded real-data fixture, not a forced runtime count. No remote provider reachability is inferred.
+
+No console connection, deployment, reboot, metadata refresh, release publication or merge is performed by the build/tests. Physical PS5 13.40 checks remain with the operator; successful desktop tests are not reported as console evidence.

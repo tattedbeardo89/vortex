@@ -472,6 +472,42 @@ async function settingsPage() {
       "section",
       { class: "panel" },
       row("Vortex Web", `API v${app.apiVersion} · Vortex ${app.version}`),
+      row(
+        "Build commit",
+        data.build?.commit || "Unavailable — verify the mounted image",
+      ),
+      row(
+        "Build date",
+        `${data.build?.buildDate || "unknown"} · ${data.build?.dateBasis || "unknown"}`,
+      ),
+      row(
+        "Upstream baseline",
+        `${data.build?.upstream?.version || "unknown"} · ${data.build?.upstream?.commit || "unknown"}`,
+      ),
+      row(
+        "Frontend / backend",
+        `${data.build?.webFrontendId || "unknown"} · API ${data.build?.apiVersion || app.apiVersion} · pairing schema ${data.build?.pairingSchema || "unknown"}`,
+      ),
+      row("Branding revision", data.build?.brandingRevision || "unknown"),
+      row(
+        "Frontend consistency",
+        document.querySelector('meta[name="vortex-build"]')?.content ===
+          data.build?.webFrontendId
+          ? "Frontend matches backend build identity"
+          : "Build identity differs or is unavailable; reload this page and verify the mounted image",
+      ),
+      row(
+        "Durable authorization storage",
+        `${data.storage?.writable ? "Read/write probe passed" : "Unavailable / not probed"} · ${data.storage?.directory || "unknown"}. Reboot durability still requires a console check.`,
+        button("Check storage", async () => {
+          try {
+            await api("diagnostics/storage", {});
+            await loadPage();
+          } catch (error) {
+            notice(error.message);
+          }
+        }),
+      ),
       row("Listening port", String(data.port)),
       row(
         "Binding",
@@ -497,7 +533,7 @@ async function settingsPage() {
       data.devices.map((device) =>
         row(
           device.name,
-          `Expires ${new Date(device.expires).toLocaleTimeString()}${device.id === data.currentDevice ? " · this browser" : ""}`,
+          `Expires ${new Date(device.expires).toLocaleString()}${device.id === data.currentDevice ? " · this browser" : ""}`,
           el("button", {
             text: "Revoke",
             disabled: readOnly,

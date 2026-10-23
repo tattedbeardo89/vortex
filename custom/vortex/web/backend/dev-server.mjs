@@ -90,7 +90,17 @@ const state = createStateAdapter({
 const router = createRouter({
   auth,
   state,
-  settings: () => ({ port, binding: "127.0.0.1", readOnly: false }),
+  settings: () => ({
+    port,
+    binding: "127.0.0.1",
+    readOnly: false,
+    build: JSON.parse(readFileSync(`${app}/VORTEX-BUILD.json`, "utf8")),
+    storage: {
+      writable: true,
+      directory: "isolated development fixture",
+      hardwareDurabilityVerified: false,
+    },
+  }),
   readAsset: (name) => readFileSync(`${app}/vortex-web-assets/${name}`, "utf8"),
 });
 const server = http.createServer(

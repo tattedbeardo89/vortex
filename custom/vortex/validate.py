@@ -34,6 +34,10 @@ def validate_built(brand):
     assert receipt['title'] == brand['titleId'] and receipt['config'] == config
     assert not any(Path(name).name=='web-devices.json' for name in receipt['files'])
     assert receipt['app'] == 'vortex' and not receipt['hardware_tested']
+    build=json.loads((app/'VORTEX-BUILD.json').read_text())
+    assert build==json.loads((OUTPUT/'VORTEX-BUILD.json').read_text())
+    assert build['version']==brand['version'] and build['nativeShell']==1 and build['storagePolicy']==2
+    assert build['commit'].encode() in (app/'eboot.bin').read_bytes()
     branding=json.loads((app/'VORTEX-BRANDING.json').read_text())
     assert branding==json.loads((OUTPUT/'VORTEX-BRANDING.json').read_text())
     assert branding['masterSha256']==digest(CUSTOM/'branding/angular-v.svg')

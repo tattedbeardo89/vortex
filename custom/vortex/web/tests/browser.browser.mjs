@@ -127,6 +127,14 @@ for (const project of selected)
           await page.locator("main").textContent(),
           new RegExp(`${project} test browser`),
         );
+        assert.match(
+          await page.locator("main").textContent(),
+          /Frontend matches backend build identity/,
+        );
+        assert.match(
+          await page.locator("main").textContent(),
+          /pairing schema 1/,
+        );
         for (const width of [768, 390]) {
           await page.setViewportSize({ width, height: 844 });
           await wait(100);

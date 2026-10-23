@@ -1,0 +1,15 @@
+{
+  "format": 1,
+  "version": "1.2.1",
+  "base": "cf9a1de",
+  "selectedUpstream": "9f90d882771eb87f75579b10f951cc2dbe4daf2a",
+  "shadowMountSourceInspected": "0794096dbfd5855d5b757e4708703671400bc9cf",
+  "storagePolicy": 2,
+  "ps5WebDirectory": "/data/vortex/PPSA99189/web",
+  "hardwareTested": false,
+  "consoleAccessed": false,
+  "releasePublished": false,
+  "prMerged": false,
+  "validationStatus": "See feature PR checks and fresh independent artifact report for authoritative source SHA and final results",
+  "investigation": "docs/NATIVE_SHELL_RECOVERY.md"
+}

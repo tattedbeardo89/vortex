@@ -10,7 +10,14 @@ const safeError = (error) =>
   String(error?.message || "Request failed")
     .replace(/https?:\/\/\S+/g, "[provider address]")
     .slice(0, 500);
-export function createRouter({ auth, state, settings, readAsset }) {
+export function createRouter({
+  auth,
+  state,
+  settings,
+  readAsset,
+  diagnostics = () => ({}),
+  checkStorage = () => ({}),
+}) {
   return async (req) => {
     let session;
     const json = (status, body, cookie = "") => {
@@ -95,6 +102,10 @@ export function createRouter({ auth, state, settings, readAsset }) {
           "vortex_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0",
         );
       }
+      if (path === "/api/v1/diagnostics" && req.method === "GET")
+        return json(200, diagnostics());
+      if (path === "/api/v1/diagnostics/storage" && req.method === "POST")
+        return json(200, checkStorage());
       if (path === "/api/v1/status" && req.method === "GET")
         return json(200, await state.status());
       if (path === "/api/v1/dashboard" && req.method === "GET")

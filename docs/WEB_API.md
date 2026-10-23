@@ -32,3 +32,7 @@ Polling clients should pause when hidden, back off on transport failures and re-
 Native transport contract is private ABI 1 at `__vortexWebNative`: `start`, `stop`, `random`, `poll`, `reply`. It is consumed only by the Vortex adapter, not exposed over HTTP. Upstream core ABI remains unchanged. The development transport shares routing/authentication but explicitly rejects downloads and has no PS5 state connection.
 
 Explicit authorization failures return HTTP 401 with `code: PAIRING_REQUIRED`; network, timeout, ambiguous errors and HTTP 5xx must not clear browser credentials.
+
+## Native shell diagnostics (1.2.1)
+
+Authenticated `GET /api/v1/diagnostics` reports compiled/mounted build identity and cached storage probe status without credentials or verifiers. CSRF-protected `POST /api/v1/diagnostics/storage` explicitly performs synced write/rename/read/cleanup. Read-only mode rejects that POST. Neither GET nor background polling renews authorization. Native registered-artwork repair is console-only and has no HTTP endpoint. See [installation recovery](NATIVE_SHELL_RECOVERY.md).

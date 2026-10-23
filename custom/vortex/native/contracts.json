@@ -1,0 +1,11 @@
+{
+  "app/ui/Header.jsx": "32861a9e360439fd97e2190f39d7e66cc47705bfa6fe4bc9bfe4c19581b69587",
+  "app/state/nav.jsx": "823bf37c2bf8a65e7f2bb6c57db76a69d7195b7d90b7cbdbba95cab11afe31bf",
+  "app/ui/useSections.js": "6d2be1945a1e4e34aefeb95fffe6060ec01b93481c10c062f45842ac7baaa52a",
+  "app/index.jsx": "007089ddaf57dbeababcff590b53eb55df56325ec806e5c8d1904630d2594fbe",
+  "app/browse/Catalog.jsx": "45ee405b0943d2df9e709f054321d9ca4d9f0b6d20792a98a0c01a089d931de2",
+  "app/homebrew/HomebrewScreen.jsx": "c4446706050b1158c776eed30af54d95e951a28c3c7591e639a3bea1f7e54d03",
+  "app/browse/Spotlight.jsx": "c21361b3aab56325bff85743f0bc89369ac2064a4ec61372337dacb0525ccd7c",
+  "app/downloads/DownloadsScreen.jsx": "706cee5ea44cc866dfb9ce59eb1921c56aef4fc18b8edcfce5f177df0aab2ea8",
+  "app/ui/GameCard.jsx": "ea20c9fac62eb92ab05a2adbf37bf619be631e6d5f8c6e18fefd2f071cf29abf"
+}
