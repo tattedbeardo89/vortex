@@ -23,13 +23,22 @@ def run(control, records):
         row=next(r for r in records() if r.get('text')==labels[id] and not r.get('inert'))
         assert control('focus '+row['focusKey']).strip()=='ok'
         control('press confirm');wait();active(id)
+    def left_edge(id):
+        target = 'web:toggle' if id=='settings' else 'spotlight:cta' if id=='discover' else 'downloads:empty' if id=='downloads' else None
+        if id=='homebrew':
+            target=next((r['focusKey'] for r in records() if r.get('focusKey') in ['homebrew-kind:all','homebrew:sidebar'] and not r.get('inert')),None)
+        if id in ['catalog','ps5','ps4','favorites']:target='catalog:filters'
+        assert target and control('focus '+target).strip()=='ok', 'Section has no usable first/empty content control: '+id
+        wait();control('press left');wait()
+        assert next(r for r in records() if r.get('focused'))['focusKey']=='nav:current', 'Left edge did not enter active sidebar: '+id
+        control('press right');wait();focus_visible()
     open_section('discover')
     for forward,button in [(True,'r1'),(False,'l1')]:
         current=0
         for _ in ids:
             control('press '+button);wait()
             current=(current+(1 if forward else -1))%len(ids)
-            active(ids[current]);focus_visible()
+            active(ids[current]);focus_visible();left_edge(ids[current])
     # Preserve the user's confirmed bottom-row entry. Use actual last first-column card.
     open_section('ps4')
     cards=[]
@@ -105,4 +114,4 @@ def run(control, records):
         scale=width/1920
         assert all(r['x']*scale>=32*scale and r['y']*scale>=32*scale and (r['x']+r['width'])*scale<=width-32*scale and (r['y']+r['height'])*scale<=height-32*scale for r in measured)
         output[f'{width}x{height}']={'fixedRenderProjection':True,'physicalDisplayTested':False}
-    return {'registryForwardAndReverseCycles':True,'bottomRowLeftSidebarDownDownloads':True,'settingsTraversalControls':len(seen),'settingsBoundsMeasured':True,'dynamicArtworkDiagnostics':True,'outputModes':output,'modalAndKeyboardIsolation':True,'hardwareTested':False}
+    return {'registryForwardAndReverseCycles':True,'allPrimarySectionLeftEdges':True,'emptyHomebrewControl':True,'bottomRowLeftSidebarDownDownloads':True,'settingsTraversalControls':len(seen),'settingsBoundsMeasured':True,'dynamicArtworkDiagnostics':True,'outputModes':output,'modalAndKeyboardIsolation':True,'hardwareTested':False}
