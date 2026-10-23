@@ -62,6 +62,14 @@ for (const project of selected)
         page.on("pageerror", (error) => errors.push(error.message));
         await page.goto(`http://127.0.0.1:${port}/`);
         await page.locator("#pair-dialog[open]").waitFor();
+        assert.match(
+          await page.locator("#pair-dialog").textContent(),
+          /30 days/,
+        );
+        assert.doesNotMatch(
+          await page.locator("#pair-dialog").textContent(),
+          /one hour|when Vortex closes/,
+        );
         const { code } = JSON.parse(readFileSync(consoleFile));
         try {
           await page.locator("#pair-code").fill(code);
