@@ -35,3 +35,13 @@ Controlled-clock/isolated-storage tests cover expiry, renewal, non-renewing poll
 Physical PS5 app switching, rest mode, reboot, clock changes, real device storage durability and controller appearance still need hardware verification. No console deployment or release publication is performed automatically.
 
 Stopping a listener also invalidates its in-flight authorization object without deleting durable devices. Old async resolutions cannot enqueue through a stopped generation; a new listener reloads the same unrevoked device verifiers.
+
+## Current validation and delivery limits
+
+Local source `3f50dd5` passed native PS5 title packaging, ELF/SELF/hash/ZIP checks, exact catalog resource parity, Angular V master/PNG/BC7 dimensions and digests, and exclusion of device state. All 4,015 native files were independently rehashed; 3,920 catalog resource files match the selected source. A reused local output had retained 1,909 obsolete catalog resource files; the Vortex wrapper now clears only receipt-owned title output before compilation, with unknown/symlinked targets rejected. This is not evidence about console download failures or prior clean hosted builds.
+
+Local tests: 23 Vortex Python, 8 updater JavaScript, 34 Web JavaScript, 9 compatibility/socket Python, 6 historical catalog, 17 application and 136 framework JavaScript tests passed. Actual native QuickJS listener restart and local Chromium service-process restart/offline/503/ambiguous-401 flows passed. Independent re-encoding checks clear the generator cache. See [machine-readable evidence](investigations/phase5-validation.json).
+
+GitHub rejects workflow dispatch with HTTP 422: **Actions has been disabled for this repository**. Earlier lightweight jobs failed because Pillow was absent; installation of the existing pinned dependency is fixed in validation and synchronization workflows. The corrected workflow has not rerun. Full hosted framework and Firefox/WebKit validation remain pending. This rootless workspace lacks sudo/FUSE for the existing exFAT packaging method, so fresh `Vortex.exfat` and `update.zip` are not delivered yet. Re-enable repository Actions to finish the mount-capable build and artifact delivery; no older image is offered as this build.
+
+Upgrading from the former memory-only authorization implementation requires one fresh pairing because that version saved no device verifiers. Subsequent restarts preserve it. Physical PS5 app switching/rest mode/reboot, storage durability and home-screen appearance remain manual checks.

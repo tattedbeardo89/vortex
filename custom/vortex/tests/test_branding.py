@@ -6,13 +6,14 @@ import tempfile
 import unittest
 from PIL import Image
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
-from branding import generate,CUSTOM
+from branding import generate,CUSTOM,artwork
 
 class AngularV(unittest.TestCase):
     def test_master_drives_deterministic_transparent_icon_native_paths_and_favicon(self):
         with tempfile.TemporaryDirectory() as folder:
             stage=Path(folder);(stage/'ui').mkdir()
             first=generate(stage)
+            artwork.cache_clear()  # Independently encode again; do not merely compare cached output.
             self.assertEqual(first,generate(stage))
             self.assertEqual(first['masterSha256'],hashlib.sha256((CUSTOM/'branding/angular-v.svg').read_bytes()).hexdigest())
             self.assertEqual((stage/'vortex-web-assets/favicon.svg').read_bytes(),(CUSTOM/'branding/angular-v.svg').read_bytes())
