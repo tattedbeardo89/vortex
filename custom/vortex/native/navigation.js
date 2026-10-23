@@ -51,9 +51,9 @@ export const FULL = {
 // This is the only primary section order. Legacy destinations remain visible tools.
 export function adjacentSection(current, forward) {
   const index = SIDEBAR.findIndex((row) => row.id === current);
-  return SIDEBAR[
-    (Math.max(0, index) + (forward ? 1 : SIDEBAR.length - 1)) % SIDEBAR.length
-  ].id;
+  if (index < 0) return SIDEBAR[forward ? 0 : SIDEBAR.length - 1].id;
+  return SIDEBAR[(index + (forward ? 1 : SIDEBAR.length - 1)) % SIDEBAR.length]
+    .id;
 }
 export function contentFocus(id) {
   return (

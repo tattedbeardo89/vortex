@@ -50,4 +50,6 @@ test("one registry cycles forward and backward through every visible primary sec
     assert.notEqual(adjacentSection(expected[i], true), "files");
   }
   assert.equal(currentSection("downloads", "downloads", {}, true), "settings");
+  assert.equal(adjacentSection("top", true), "discover");
+  assert.equal(adjacentSection("files", false), "settings");
 });

@@ -29,6 +29,7 @@ def apply(stage):
     text="import { NativeSidebar } from '../vortex-native/Sidebar.jsx';\nimport { CONTENT, FULL } from '../vortex-native/navigation.js';\n"+text
     text="import { useNativeNavigation } from '../vortex-native/controller.js';\n"+text
     text=replace(text,'    const toastAction =', '    const nativeNav = useNativeNavigation({top, section, filters, on, nav});\n    const toastAction =')
+    text=replace(text,'      setBrowsing(false);','      if (browsing || choosingLanguage) return true;\n      setBrowsing(false);')
     start=text.index('      // Right-to-left the sections run leftward')
     end=text.index('      return true;',start)
     text=text[:start]+'''      // Fixed vertical sidebar order, independent of text direction. Modals own their input.

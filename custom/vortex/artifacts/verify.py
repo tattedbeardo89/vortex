@@ -82,8 +82,11 @@ assert read_file('vortex-web-assets/favicon.svg')==(ROOT/'custom/vortex/branding
 assert read_file('VORTEX-NOTICE.txt')==(ROOT/'custom/vortex/NOTICE.txt').read_bytes()
 build=json.loads(read_file('VORTEX-BUILD.json'))
 expected_build=json.loads((stage/'VORTEX-BUILD.json').read_text())
-for key in ['format','version','commit','upstream','webFrontendId','apiVersion','pairingSchema','brandingRevision','nativeShell','storagePolicy']:
+for key in ['format','version','commit','upstream','webFrontendId','apiVersion','pairingSchema','brandingRevision','nativeShell','storagePolicy','artwork']:
     assert build[key]==expected_build[key], 'Build identity differs: '+key
+assert build['artwork']==branding['files'], 'Compiled diagnostic checksums differ from packaged artwork'
+for record in build['artwork'].values():
+    assert record['sha256'].encode() in read_file('eboot.bin'), 'Artwork checksum missing from compiled application'
 assert build['commit']==SOURCE
 assert build['commit'].encode() in read_file('eboot.bin'), 'Compiled build identity missing'
 built_at=datetime.fromisoformat(build['buildDate'].replace('Z','+00:00'))

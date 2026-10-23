@@ -141,6 +141,23 @@ test("registered artwork refresh is title-bound, backed up, and never removes us
   const hash = (_location, name) => BUILD.artwork["sce_sys/" + name].sha256;
   assert.throws(() => refreshArtwork(fs, "ps5", () => "wrong"), /not verified/);
   assert.equal(fs.writes.length, 0);
+  const copy = fs.copyFile;
+  fs.copyFile = (from, to) => {
+    if (to.endsWith("artwork-backup/pic1.dds")) throw Error("backup disk full");
+    copy(from, to);
+  };
+  assert.throws(() => refreshArtwork(fs, "ps5", hash), /backup disk full/);
+  for (const name of ["icon0.png", "pic0.dds", "pic1.dds"])
+    assert.equal(
+      fs.files.get(root + "/" + name),
+      "Old " + name,
+      "No registration write is allowed until every backup completes",
+    );
+  assert.equal(
+    fs.files.get("/user/app/PPSA99189/icon0.png"),
+    "Old staged root icon",
+  );
+  fs.copyFile = copy;
   refreshArtwork(fs, "ps5", hash);
   for (const name of ["icon0.png", "pic0.dds", "pic1.dds"]) {
     assert.equal(fs.files.get(root + "/" + name), "Angular V " + name);

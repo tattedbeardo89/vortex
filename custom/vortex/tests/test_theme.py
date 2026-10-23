@@ -68,6 +68,7 @@ class ThemeRegression(unittest.TestCase):
                 if relative=='ui/Header.jsx':
                     generated=generated.replace("import { useNativeNavigation } from '../vortex-native/controller.js';\n",'')
                     generated=generated.replace('    const nativeNav = useNativeNavigation({top, section, filters, on, nav});\n','')
+                    generated=generated.replace('      if (browsing || choosingLanguage) return true;\n','')
                     original_shoulder=source[source.index('      // Right-to-left the sections run leftward'):source.index('      return true;',source.index('      // Right-to-left the sections run leftward'))]
                     start=generated.index('      // Fixed vertical sidebar order')
                     end=generated.index('      return true;',start)

@@ -125,6 +125,15 @@ export function NativeSidebar({
               ...SIDEBAR.map((row) =>
                 item(row.id, row.label, () => activate(row.id)),
               ),
+              jsx(Text, {
+                style: {
+                  fontFamily: "Inter-Regular",
+                  fontSize: 18,
+                  color: colors.muted,
+                  marginTop: 12,
+                },
+                children: "Tools",
+              }),
               item("search", "Search", on.search),
               item("top", "Top rated", on.top),
               item("files", "Files", on.files),

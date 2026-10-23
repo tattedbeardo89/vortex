@@ -78,6 +78,11 @@ def run(control, records):
         control('press up');wait()
     assert row.get('focusKey')=='web:toggle', 'Controller cannot return to first Settings control'
     control('press up');wait();assert focus_visible()['focusKey']=='web:toggle'
+    control('focus web:console-settings');wait();control('press confirm');wait()
+    assert any((r.get('focusKey') or '').startswith('settings:') and r.get('focused') for r in records()), 'Original console settings modal did not receive focus'
+    control('press r1');wait();active('settings')
+    control('press back');wait()
+    assert focus_visible()['focusKey']=='web:console-settings', 'Settings modal dismissal did not restore and reveal its origin'
     control('press l1');wait();active('downloads')
     # Settings is a section, not an invisible modal. Left enters its active sidebar row.
     open_section('settings');control('focus web:toggle');wait();control('press left');wait()
@@ -88,7 +93,7 @@ def run(control, records):
     for key in ['nav:genres','nav:language']:
         control('focus '+key);control('press confirm');wait();control('press r1');wait();active('discover')
         control('press back');wait()
-        assert next(r for r in records() if r.get('focused'))['focusKey']==key, 'Modal did not restore originating focus'
+        assert next(r for r in records() if r.get('focused'))['focusKey']==key, 'Modal did not restore originating focus: '+key+' -> '+str(next((r.get('focusKey') for r in records() if r.get('focused')),None))
     control('focus nav:search');control('press confirm');wait()
     control('press r1');wait()
     assert any(r.get('focusKey')=='nav:current' and r.get('text')=='‹ Back to Vortex' for r in records())
