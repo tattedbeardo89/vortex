@@ -137,7 +137,7 @@ export function WebPanel() {
                 text("Vortex Web", 30),
                 text(
                   info.running
-                    ? "Local browser access is running"
+                    ? `Vortex Web listening on ${info.binding}:${info.port}`
                     : "Browser access is disabled",
                   26,
                   info.running ? colors.ok : colors.muted,
