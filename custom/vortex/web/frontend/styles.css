@@ -158,11 +158,7 @@ small,
   place-items: center;
   width: 44px;
   height: 44px;
-  background: var(--accent);
-  color: var(--onAction);
-  border-radius: 13px;
-  font-size: 27px;
-  transform: rotate(-6deg);
+  object-fit: contain;
 }
 .brand small {
   display: block;

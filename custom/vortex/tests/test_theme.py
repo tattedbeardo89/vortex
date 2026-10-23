@@ -66,7 +66,12 @@ class ThemeRegression(unittest.TestCase):
         # Splash changes vector geometry only; all hooks/timing/animation callbacks stay upstream's.
         source=(overlay.ROOT/'app/ui/Splash.jsx').read_text()
         generated=(overlay.OUTPUT/'ui/Splash.jsx').read_text()
-        strip_paths=lambda text:re.sub(r'd: "[^"]+"','d: "BRAND_PATH"',normalize(text))
+        def strip_paths(text):
+            text=normalize(text).replace("import { EMBLEM } from './vortex-emblem.js';\n",'')
+            # Only the two vector Path property bags and their pivot are branding geometry.
+            text=re.sub(r'\(Path, \{[^}]*\}', '(Path, {BRAND_GEOMETRY}', text)
+            text=re.sub(r'var HUB = \{ x: [0-9.]+, y: [0-9.]+ \}', 'var HUB = {BRAND_PIVOT}',text)
+            return text
         self.assertEqual(strip_paths(source),strip_paths(generated))
 
 if __name__=='__main__':unittest.main()

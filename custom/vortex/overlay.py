@@ -96,18 +96,15 @@ def prepare():
             shutil.copyfile(CUSTOM / 'runtime' / source, stage / destination)
         themed = apply_theme(stage)
         (stage / 'vortex-brand.js').write_text('export const BRAND = Object.freeze(' + json.dumps(brand, indent=2) + ');\n')
-        for key, filename in [('icon', 'icon0.png'), ('selectedBackground', 'pic0.dds'), ('launchBackground', 'pic1.dds')]:
-            asset = (ROOT / brand['assets'][key]).resolve()
-            if not asset.is_relative_to(ROOT) or not asset.is_file():
-                raise ValueError(f'Missing or unsafe artwork path: {key}')
-            shutil.copyfile(asset, stage / 'sce_sys' / filename)
+        from branding import generate as generate_branding
+        generate_branding(stage)
         upstream_version = (ROOT / 'app/version.js').read_text()
         (stage / 'version.js').write_text('export const VERSION = ' + json.dumps(brand['version']) + ';\nexport const UPSTREAM_VERSION = ' + json.dumps(re.search(r'\"([0-9.]+)\"', upstream_version)[1]) + ';\n')
         config = json.loads((stage / 'app.json').read_text())
         major, minor, patch = map(int, brand['version'].split('.'))
         shutil.copyfile(CUSTOM / 'NOTICE.txt', stage / 'VORTEX-NOTICE.txt')
         (stage / 'VORTEX-BASELINE.json').write_text(json.dumps(baseline, indent=2) + '\n')
-        config['resources'] = [*config.get('resources', []), 'VORTEX-NOTICE.txt', 'VORTEX-BASELINE.json']
+        config['resources'] = [*config.get('resources', []), 'VORTEX-NOTICE.txt', 'VORTEX-BASELINE.json', 'VORTEX-BRANDING.json']
         config.update(name=brand['name'], titleId=brand['titleId'], contentId=brand['contentId'], version=f'{major:02}.{minor:03}.{patch:03}')
         (stage / 'app.json').write_text(json.dumps(config, indent=2) + '\n')
         report = {'format': 1, 'brand': brand['name'], 'titleId': brand['titleId'], 'repository': brand['repository'],

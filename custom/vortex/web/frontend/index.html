@@ -9,6 +9,7 @@
     <meta name="color-scheme" content="dark" />
     <meta name="referrer" content="no-referrer" />
     <title>Vortex Web</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="stylesheet" href="/styles.css" />
     <script type="module" src="/app.js"></script>
   </head>
@@ -16,8 +17,7 @@
     <a class="skip" href="#content">Skip to content</a>
     <aside id="sidebar">
       <a class="brand" href="#dashboard"
-        ><span class="brand-mark" aria-hidden="true">V</span
-        ><span>Vortex <small>YOUR CONSOLE, CONNECTED</small></span></a
+        ><img class="brand-mark" src="/favicon.svg" alt="" /><span>Vortex</span></a
       >
       <button
         id="menu-toggle"
@@ -37,7 +37,7 @@
       </nav>
       <div class="sidebar-foot">
         <span id="connection" role="status" aria-live="polite">Connecting…</span
-        ><small id="build-label">Local network · Vortex must remain open</small>
+        ><button id="reconnect" class="quiet" type="button">Reconnect</button><small id="build-label">Local network · Vortex must remain open</small>
       </div>
     </aside>
     <div class="workspace">

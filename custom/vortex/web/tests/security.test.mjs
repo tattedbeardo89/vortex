@@ -159,7 +159,7 @@ test("one-time pairing, HttpOnly SameSite cookie, CSRF and revocation work", asy
     401,
   );
 });
-test("session expiry and application shutdown invalidate credentials", async () => {
+test("session expiry and explicit security reset invalidate credentials", async () => {
   const s = setup(),
     p = await pair(s);
   s.clock(1000 + SESSION_MS + 1);

@@ -1,5 +1,6 @@
 import { WebError } from "../security/auth.js";
 const ASSETS = {
+  "/favicon.svg": ["favicon.svg", "image/svg+xml"],
   "/": ["index.html", "text/html; charset=utf-8"],
   "/index.html": ["index.html", "text/html; charset=utf-8"],
   "/app.js": ["app.js", "text/javascript; charset=utf-8"],
@@ -11,7 +12,11 @@ const safeError = (error) =>
     .slice(0, 500);
 export function createRouter({ auth, state, settings, readAsset }) {
   return async (req) => {
+    let session;
     const json = (status, body, cookie = "") => {
+      if(status>=200 && status<300 && session && req.method==='POST' && !req.target.startsWith('/api/v1/auth/logout')) {
+        auth.touch(session.id);cookie=cookie||auth.renewal(req);
+      }
       const text = JSON.stringify(body);
       return text.length > 512 * 1024
         ? {
@@ -56,13 +61,14 @@ export function createRouter({ auth, state, settings, readAsset }) {
           cookie,
         );
       }
-      const session = auth.authenticate(req);
+      session = auth.authenticate(req);
       if (
         req.method !== "GET" &&
         settings().readOnly &&
-        !(path === "/api/v1/auth/logout" && req.method === "POST")
+        !(["/api/v1/auth/logout","/api/v1/auth/activity"].includes(path) && req.method === "POST")
       )
         throw new WebError(403, "Vortex Web is read-only");
+      if (path === "/api/v1/auth/activity" && req.method === "POST") return json(200,{ok:true});
       if (path === "/api/v1/auth/session" && req.method === "GET")
         return json(200, {
           apiVersion: 1,
@@ -126,6 +132,7 @@ export function createRouter({ auth, state, settings, readAsset }) {
     } catch (error) {
       return json(error instanceof WebError ? error.status : 500, {
         error: safeError(error),
+        ...(error instanceof WebError && error.status===401 && !req.target.startsWith("/api/v1/auth/pair") ? {code:"PAIRING_REQUIRED"} : {}),
       });
     }
   };

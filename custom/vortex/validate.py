@@ -20,6 +20,14 @@ def validate_built(brand):
     assert param['localizedParameters']['en-US']['titleName'] == brand['name']
     assert receipt['title'] == brand['titleId'] and receipt['config'] == config
     assert receipt['app'] == 'vortex' and not receipt['hardware_tested']
+    branding=json.loads((app/'VORTEX-BRANDING.json').read_text())
+    assert branding==json.loads((OUTPUT/'VORTEX-BRANDING.json').read_text())
+    assert branding['masterSha256']==digest(CUSTOM/'branding/angular-v.svg')
+    from PIL import Image
+    for name,record in branding['files'].items():
+        assert digest(app/name)==record['sha256']
+        with Image.open(app/name) as image:
+            assert list(image.size)==record['dimensions']==([512,512] if name.endswith('.png') else [1920,1080])
     assert json.loads((app / 'VORTEX-WEB.json').read_text()) == json.loads((OUTPUT / 'VORTEX-WEB.json').read_text())
     for name, checksum in json.loads((app / 'VORTEX-WEB.json').read_text())['assets'].items():
         assert digest(app / 'vortex-web-assets' / name) == checksum

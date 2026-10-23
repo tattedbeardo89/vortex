@@ -1,4 +1,5 @@
 import { FileSystem } from "@ps5-react/core";
+import { deviceStorage } from "../security/storage.js";
 import { createAuth } from "../security/auth.js";
 import { createRouter } from "../backend/router.js";
 import { nativeTransport } from "./native.js";
@@ -62,7 +63,8 @@ export function stopService() {
   if (timer) clearInterval(timer);
   timer = null;
   native?.stop();
-  auth?.clear();
+  try { auth?.flush(); } catch (failure) { error = failure.message; }
+  auth = null;
   notify();
 }
 export function apply(next, persist = true) {
@@ -88,6 +90,7 @@ export function apply(next, persist = true) {
       auth = createAuth({
         random: (count) => native.random(count),
         port: () => port,
+        storage: deviceStorage(FileSystem, `${FileSystem.dataDir}/vortex`),
       });
       router = createRouter({
         auth,
@@ -138,7 +141,7 @@ export function apply(next, persist = true) {
       config.enabled = false;
       if (timer) clearInterval(timer);
       timer = null;
-      auth?.clear();
+      auth = null;
       native?.stop();
     }
   if (persist)
@@ -160,6 +163,13 @@ export function pairCode() {
   notify();
 }
 export function revoke(id) {
-  auth?.revoke(id);
+  try { auth?.revoke(id);error=""; } catch(failure) { error=failure.message; }
   notify();
+}
+
+// Console-only recovery. Never exposed as an unauthenticated HTTP endpoint.
+export function resetDevices() {
+  stopService();
+  deviceStorage(FileSystem, `${FileSystem.dataDir}/vortex`).save({format:1,highWater:Date.now(),devices:[]});
+  return apply(config);
 }
