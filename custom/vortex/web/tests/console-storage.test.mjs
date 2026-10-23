@@ -8,7 +8,12 @@ import {
 } from "../security/location.js";
 import { deviceStorage } from "../security/storage.js";
 import { createAuth, SESSION_MS } from "../security/auth.js";
-import { refreshArtwork } from "../integration/artwork.js";
+import { register } from "node:module";
+register(new URL("./service-loader.mjs", import.meta.url), import.meta.url);
+const { refreshArtwork, restoreArtwork, inspectArtwork } = await import(
+  "../integration/artwork.js"
+);
+const { BUILD } = await import("../../../../.vortex/vortex/vortex-build.js");
 function fixture() {
   const files = new Map(),
     modes = new Map(),
@@ -123,14 +128,37 @@ test("registered artwork refresh is title-bound, backed up, and never removes us
   });
   fs.files.set("/app0/sce_sys/param.json", param);
   fs.files.set(root + "/param.json", param);
+  fs.files.set("/user/app/PPSA99189/sce_sys/param.json", param);
+  fs.files.set("/user/app/PPSA99189/icon0.png", "Old staged root icon");
   for (const name of ["icon0.png", "pic0.dds", "pic1.dds"]) {
     fs.files.set("/app0/sce_sys/" + name, "Angular V " + name);
     fs.files.set(root + "/" + name, "Old " + name);
+    fs.files.set("/user/app/PPSA99189/sce_sys/" + name, "Old staged " + name);
   }
   fs.files.set("/data/vortex/PPSA99189/web/web-devices.json", "untouched");
   assert.throws(() => refreshArtwork(fs, "desktop"), /only on PS5/);
   assert.equal(fs.writes.length, 0);
-  refreshArtwork(fs, "ps5");
+  const hash = (_location, name) => BUILD.artwork["sce_sys/" + name].sha256;
+  assert.throws(() => refreshArtwork(fs, "ps5", () => "wrong"), /not verified/);
+  assert.equal(fs.writes.length, 0);
+  const copy = fs.copyFile;
+  fs.copyFile = (from, to) => {
+    if (to.endsWith("artwork-backup/pic1.dds")) throw Error("backup disk full");
+    copy(from, to);
+  };
+  assert.throws(() => refreshArtwork(fs, "ps5", hash), /backup disk full/);
+  for (const name of ["icon0.png", "pic0.dds", "pic1.dds"])
+    assert.equal(
+      fs.files.get(root + "/" + name),
+      "Old " + name,
+      "No registration write is allowed until every backup completes",
+    );
+  assert.equal(
+    fs.files.get("/user/app/PPSA99189/icon0.png"),
+    "Old staged root icon",
+  );
+  fs.copyFile = copy;
+  refreshArtwork(fs, "ps5", hash);
   for (const name of ["icon0.png", "pic0.dds", "pic1.dds"]) {
     assert.equal(fs.files.get(root + "/" + name), "Angular V " + name);
     assert.equal(
@@ -142,8 +170,38 @@ test("registered artwork refresh is title-bound, backed up, and never removes us
     fs.files.get("/data/vortex/PPSA99189/web/web-devices.json"),
     "untouched",
   );
+  assert.equal(
+    fs.files.get("/data/vortex/PPSA99189/artwork-backup/param.json"),
+    param,
+  );
+  assert.equal(
+    fs.files.get("/user/app/PPSA99189/icon0.png"),
+    "Angular V icon0.png",
+  );
+  restoreArtwork(fs, "ps5");
+  assert.equal(
+    fs.files.get("/user/app/PPSA99189/icon0.png"),
+    "Old staged root icon",
+  );
+  assert.equal(fs.files.get(root + "/icon0.png"), "Old icon0.png");
   fs.files.set(root + "/param.json", JSON.stringify({ titleId: "PPSA99058" }));
   const previous = fs.writes.length;
   assert.throws(() => refreshArtwork(fs, "ps5"), /identity mismatch/);
   assert.equal(fs.writes.length, previous);
+});
+
+test("artwork inspection distinguishes compiled metadata, actual mounted hashes and stale registered artwork without writes", () => {
+  const fs = fixture();
+  fs.files.set(
+    "/app0/VORTEX-BRANDING.json",
+    JSON.stringify({ masterSha256: BUILD.brandingRevision }),
+  );
+  const report = inspectArtwork(fs, (where, name) =>
+    where === "mounted" ? BUILD.artwork["sce_sys/" + name].sha256 : "old",
+  );
+  assert.equal(report.compiledRevision, report.mountedRevision);
+  assert.equal(report.files["icon0.png"].mountedMatches, true);
+  assert.equal(report.files["icon0.png"].registeredMatches, false);
+  assert.equal(report.hardwareCacheVerified, false);
+  assert.equal(fs.writes.length, 0);
 });

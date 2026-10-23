@@ -66,8 +66,16 @@ class ThemeRegression(unittest.TestCase):
                 source=(overlay.ROOT/'app'/relative).read_text()
                 generated=(overlay.OUTPUT/relative).read_text()
                 if relative=='ui/Header.jsx':
+                    generated=generated.replace("import { useNativeNavigation } from '../vortex-native/controller.js';\n",'')
+                    generated=generated.replace('    const nativeNav = useNativeNavigation({top, section, filters, on, nav});\n','')
+                    generated=generated.replace('      if (browsing || choosingLanguage) return true;\n','')
+                    original_shoulder=source[source.index('      // Right-to-left the sections run leftward'):source.index('      return true;',source.index('      // Right-to-left the sections run leftward'))]
+                    start=generated.index('      // Fixed vertical sidebar order')
+                    end=generated.index('      return true;',start)
+                    self.assertIn('nativeNav.step(action === "r1");',generated[start:end])
+                    generated=generated[:start]+original_shoulder+generated[end:]
                     generated=generated.replace("import { NativeSidebar } from '../vortex-native/Sidebar.jsx';\n",'').replace("import { CONTENT, FULL } from '../vortex-native/navigation.js';\n",'')
-                    generated=generated.replace('jsx(View, {style: immersive || ["game","search","files"].includes(top.name) ? FULL : CONTENT, children}),','children,')
+                    generated=generated.replace('jsx(View, {style: immersive || ["game","search","files"].includes(top.name) ? FULL : CONTENT, children: jsx(FocusScope, {inert:nativeNav.opened,children})}),','children,')
                     # Original event/lifecycle logic is retained byte-for-byte; native navigation
                     # presentation is intentionally replaced and exercised by controller regressions.
                     source=source.split('      /* @__PURE__ */ (0, jsx)(View, { style: immersive ?')[0]

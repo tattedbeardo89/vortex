@@ -11,7 +11,8 @@ def generate(stage,brand,baseline):
             'upstream':{'version':baseline['sourceVersion'],'commit':baseline['commit']},
             'webFrontendId':frontend,'apiVersion':1,'pairingSchema':1,
             'brandingRevision':hashlib.sha256((ROOT/'custom/vortex/branding/angular-v.svg').read_bytes()).hexdigest(),
-            'nativeShell':1,'storagePolicy':2}
+            'nativeShell':1,'storagePolicy':2,
+            'artwork':json.loads((stage/'VORTEX-BRANDING.json').read_text())['files']}
     (stage/'vortex-build.js').write_text('export const BUILD = Object.freeze('+json.dumps(record)+');\n')
     (stage/'VORTEX-BUILD.json').write_text(json.dumps(record,indent=2)+'\n')
     assets=stage/'vortex-web-assets';path=assets/'index.html';text=path.read_text()
