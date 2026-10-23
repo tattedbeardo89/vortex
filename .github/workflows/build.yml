@@ -6,13 +6,31 @@ on:
         description: Create or update a draft release after verification (never publishes)
         type: boolean
         default: false
+      verify_run_id:
+        description: Optional successful run to verify instead of building (no release)
+        type: string
+        default: ''
+      verify_artifact_name:
+        description: Artifact to independently inspect when verify_run_id is provided
+        type: string
+        default: Vortex-native-validation
 permissions:
   contents: read
 concurrency:
   group: vortex-release-build
   cancel-in-progress: false
 jobs:
+  verify-artifacts:
+    if: inputs.verify_run_id != ''
+    permissions:
+      contents: read
+      actions: read
+    uses: ./.github/workflows/verify-artifacts.yml
+    with:
+      run_id: ${{ inputs.verify_run_id }}
+      artifact_name: ${{ inputs.verify_artifact_name }}
   build:
+    if: inputs.verify_run_id == ''
     runs-on: ubuntu-24.04
     timeout-minutes: 180
     steps:

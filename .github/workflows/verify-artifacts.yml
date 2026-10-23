@@ -10,6 +10,15 @@ on:
         description: Artifact containing Vortex.exfat and update.zip
         type: string
         default: Vortex-native-validation
+  workflow_call:
+    inputs:
+      run_id:
+        type: string
+        required: true
+      artifact_name:
+        type: string
+        required: false
+        default: Vortex-native-validation
 permissions:
   contents: read
   actions: read
