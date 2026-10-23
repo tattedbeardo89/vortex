@@ -153,3 +153,78 @@ test("responses pending across listener restart cannot reach a new client", asyn
     globalThis.__webFs.clear();
   }
 });
+
+test("production service and reconstructed module retain paired browser outside replaceable image", async () => {
+  const pending = [],
+    replies = [];
+  globalThis.__webFs.clear();
+  globalThis.__vortexWebNative = {
+    abi: 1,
+    start: (_b, p) => p,
+    stop: () => {},
+    random: (n) => randomBytes(n).toString("hex"),
+    poll: () => pending.splice(0),
+    reply: (...r) => replies.push(r),
+  };
+  const req = (id, method, target, headers = {}, body = "") => ({
+    id,
+    method,
+    target,
+    peer: "127.0.0.1",
+    local: "127.0.0.1",
+    headers: {
+      host: "127.0.0.1:34189",
+      origin: "http://127.0.0.1:34189",
+      "content-type": "application/json",
+      ...headers,
+    },
+    body,
+  });
+  const waitReply = async () => {
+    for (let i = 0; i < 100 && !replies.length; i++)
+      await new Promise((r) => setTimeout(r, 10));
+    assert.ok(replies.length);
+    return replies.shift();
+  };
+  let restarted;
+  try {
+    service.startService({});
+    service.apply({
+      enabled: true,
+      port: 34189,
+      binding: "127.0.0.1",
+      readOnly: false,
+    });
+    pending.push(
+      req(
+        100,
+        "POST",
+        "/api/v1/auth/pair",
+        {},
+        JSON.stringify({ code: service.snapshot().pairing.code }),
+      ),
+    );
+    const pair = await waitReply();
+    assert.equal(pair[1], 200);
+    const cookie = pair[4].split(";")[0];
+    assert.ok(
+      globalThis.__webFs.has("/vortex-web-test/vortex/web-devices.json"),
+    );
+    service.stopService();
+    restarted = await import(
+      "../integration/console-service.js?process-reconstruction"
+    );
+    restarted.startService({});
+    pending.push(req(101, "GET", "/api/v1/auth/session", { cookie }));
+    assert.equal((await waitReply())[1], 200);
+    restarted.revoke(restarted.snapshot().devices[0].id);
+    restarted.apply({ ...restarted.snapshot(), enabled: true });
+    pending.push(req(102, "GET", "/api/v1/auth/session", { cookie }));
+    assert.equal((await waitReply())[1], 401);
+  } finally {
+    service.stopService();
+    restarted?.stopService();
+    globalThis.__webFs.clear();
+    delete globalThis.__vortexWebNative;
+  }
+});

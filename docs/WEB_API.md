@@ -6,6 +6,7 @@ Same-origin HTTP JSON under `/api/v1`. Except pairing, every API route requires 
 | --- | --- | --- |
 | POST | `/auth/pair` | `{code,name}`; returns `{apiVersion,csrf,expires}` and session cookie. Code comes only from console. |
 | GET | `/auth/session` | Current CSRF token, absolute expiry and read-only state. |
+| POST | `/auth/activity` | `{}`; CSRF-protected meaningful user activity; sliding 30-day authorization. Polling/GETs do not renew. |
 | POST | `/auth/logout` | `{}`; revoke current device and expire cookie. |
 | GET | `/status` | Vortex version, selected source baseline, commercial counts, cached homebrew count and development flag. |
 | GET | `/dashboard` | Original featured/popular games, latest releases, actual queue and storage. |
@@ -29,3 +30,5 @@ Error responses have `{error:string}`. Typical status codes: 400 invalid input, 
 Polling clients should pause when hidden, back off on transport failures and re-pair on 401. Mutations are not retried automatically. Disconnection does not cancel an already accepted queue operation. Read-only mode rejects mutations except logout; pairing itself remains available with a console-generated code.
 
 Native transport contract is private ABI 1 at `__vortexWebNative`: `start`, `stop`, `random`, `poll`, `reply`. It is consumed only by the Vortex adapter, not exposed over HTTP. Upstream core ABI remains unchanged. The development transport shares routing/authentication but explicitly rejects downloads and has no PS5 state connection.
+
+Explicit authorization failures return HTTP 401 with `code: PAIRING_REQUIRED`; network, timeout, ambiguous errors and HTTP 5xx must not clear browser credentials.

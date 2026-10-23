@@ -8,18 +8,42 @@ import subprocess
 import sys
 from overlay import ROOT, CUSTOM, OUTPUT, configuration, digest, prepare, tree
 
+def validate_catalog_resources(app, stage):
+    config = json.loads((stage / 'app.json').read_text())
+    expected = {}
+    for entry in config.get('resources', []):
+        if entry != 'data' and not entry.startswith('data/'): continue
+        source = stage / entry
+        paths = source.rglob('*') if source.is_dir() else [source]
+        for path in paths:
+            if path.is_file(): expected[str(path.relative_to(stage))] = digest(path)
+    actual = {str(path.relative_to(app)): digest(path) for path in (app / 'data').rglob('*') if path.is_file()}
+    assert actual == expected, 'Packaged catalog resources differ from the selected source; clean the owned native output'
+
 def validate_built(brand):
     dist = ROOT / 'ps5-react/dist'
     app = dist / brand['titleId']
     param = json.loads((app / 'sce_sys/param.json').read_text())
     receipt = json.loads((dist / (brand['titleId'] + '.receipt.json')).read_text())
     config = json.loads((OUTPUT / 'app.json').read_text())
+    validate_catalog_resources(app, OUTPUT)
     assert param['titleId'] == brand['titleId']
     assert param['contentId'] == brand['contentId']
     assert param['contentVersion'] == config['version']
     assert param['localizedParameters']['en-US']['titleName'] == brand['name']
     assert receipt['title'] == brand['titleId'] and receipt['config'] == config
+    assert not any(Path(name).name=='web-devices.json' for name in receipt['files'])
     assert receipt['app'] == 'vortex' and not receipt['hardware_tested']
+    branding=json.loads((app/'VORTEX-BRANDING.json').read_text())
+    assert branding==json.loads((OUTPUT/'VORTEX-BRANDING.json').read_text())
+    assert branding['masterSha256']==digest(CUSTOM/'branding/angular-v.svg')
+    from PIL import Image
+    for name,record in branding['files'].items():
+        assert digest(app/name)==record['sha256']
+        with Image.open(app/name) as image:
+            assert list(image.size)==record['dimensions']==([512,512] if name.endswith('.png') else [3840,2160])
+        if name.endswith('.dds'):
+            data=(app/name).read_bytes();assert data[84:88]==b'DX10' and int.from_bytes(data[128:132],'little')==98
     assert json.loads((app / 'VORTEX-WEB.json').read_text()) == json.loads((OUTPUT / 'VORTEX-WEB.json').read_text())
     for name, checksum in json.loads((app / 'VORTEX-WEB.json').read_text())['assets'].items():
         assert digest(app / 'vortex-web-assets' / name) == checksum

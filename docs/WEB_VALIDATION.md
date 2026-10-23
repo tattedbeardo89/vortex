@@ -1,5 +1,9 @@
 # Vortex Web validation record
 
+## Phase 5 addendum
+
+Current Angular V/persistent-pairing results, verified fresh downloads and remaining hardware limits are in [PHASE5_PAIRING_BRANDING.md](PHASE5_PAIRING_BRANDING.md) and [phase5-validation.json](investigations/phase5-validation.json). The prior successful hosted builds below predate Phase 5 and must not be used as its artifacts.
+
 ## Reconciled with merged PR #3
 
 PR #4 now targets `main`. Merge `fc003dc` incorporates main `ac1e332`, preserving framework correction `7ac803e` without history rewriting. Build/test source: `983c66ad8ba1351c3bcdf3878e1945a87a6b9c58`. Later documentation changes do not change production inputs. Raw framework files match merged main; the Web listener remains a generated overlay.

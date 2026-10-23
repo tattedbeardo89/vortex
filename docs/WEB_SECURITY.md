@@ -1,6 +1,6 @@
 # Vortex Web security
 
-Vortex Web is disabled until explicitly enabled on the console. Configuration persists in the application's independent data directory (`vortex/web.json`); pairing codes, sessions and CSRF secrets remain in memory. Closing/restarting the app, disabling Web or changing listener configuration invalidates all sessions. No UPnP, router forwarding, internet access, external hosting or companion daemon is configured.
+Vortex Web is disabled until explicitly enabled on the console. Configuration persists in the application's independent data directory (`vortex/web.json`); pairing codes remain ephemeral, while device verifiers and validated activity timestamps persist separately in `vortex/web-devices.json`. Closing/restarting the app, disabling Web or changing listener configuration keeps unexpired device authorization. No UPnP, router forwarding, internet access, external hosting or companion daemon is configured.
 
 ## Trust boundary
 
@@ -10,7 +10,7 @@ HTTP does not encrypt traffic. A hostile party able to observe or alter LAN traf
 
 ## Credentials and abuse limits
 
-Native randomness reads `/dev/urandom` or `/dev/random`, failing closed if unavailable; no pseudo-random fallback exists. Whether these device nodes work on the target PS5 must be verified on hardware. Pairing uses an eight-hex-character one-time code, expires after five minutes and consumes it on successful pairing. Sessions and CSRF secrets each contain 256 random bits. Session cookies are HttpOnly, SameSite=Strict, Path=/, Max-Age=3600; HTTP cannot use Secure cookies. Sessions expire absolutely after one hour, at most 16 paired devices. Revocation immediately removes access; delayed enqueue operations revalidate after asynchronous release resolution.
+Native randomness reads `/dev/urandom` or `/dev/random`, failing closed if unavailable; no pseudo-random fallback exists. Whether these device nodes work on the target PS5 must be verified on hardware. Pairing uses an eight-hex-character one-time code, expires after five minutes and consumes it on successful pairing. Bearer secrets contain 256 random bits; CSRF tokens derive from a domain-separated SHA-256 of that bearer. Session cookies are HttpOnly, SameSite=Strict, Path=/, Max-Age=2592000; HTTP cannot use Secure cookies. Sessions expire after 30 days of meaningful authenticated inactivity, at most 16 paired devices. Verifiers and validated activity timestamps persist outside the application image. Polling does not renew authorization; see PHASE5_PAIRING_BRANDING.md for checkpoint, clock and recovery policy. Revocation immediately removes access; delayed enqueue operations revalidate after asynchronous release resolution.
 
 Pair attempts are limited to 5 per peer per minute and 20 globally; general requests to 180 per peer and 480 globally per minute, with bounded peer bookkeeping. Native transport limits 16 client slots, backlog 16, 8KiB headers, 16KiB body, 2MiB response, 10s request/20s response deadlines and bounded work per application tick. It rejects duplicate headers, ambiguous lengths, transfer encoding, Expect, extra/pipelined request bytes and unsupported methods. No request/token logging is added. Do not upload private development pairing files or console snapshots containing codes.
 

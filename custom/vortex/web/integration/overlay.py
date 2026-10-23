@@ -16,7 +16,7 @@ def verify():
         path=ROOT/name
         if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest()!=sha:
             raise ValueError(f'Vortex Web integration incompatible: {name}; review the native/state/UI adapter before refreshing its contract')
-    required=['backend/server.hpp','backend/router.js','security/auth.js','frontend/index.html','frontend/app.js','frontend/styles.css','integration/WebPanel.jsx','integration/state-adapter.js','integration/native-adapter.js','integration/console-service.js','integration/native.js']
+    required=['backend/server.hpp','backend/router.js','security/auth.js','security/storage.js','security/sha256.js','frontend/index.html','frontend/app.js','frontend/styles.css','integration/WebPanel.jsx','integration/state-adapter.js','integration/native-adapter.js','integration/console-service.js','integration/native.js']
     for name in required:
         if not (WEB/name).is_file():raise ValueError('Vortex Web extension missing: '+name)
 

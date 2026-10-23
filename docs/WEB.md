@@ -9,7 +9,7 @@ Vortex Web adds a browser interface to the existing Vortex process. It is disabl
 3. On Windows, open Edge, Chrome or Firefox on the same trusted LAN. On iPhone, join that Wi-Fi and open Safari. Enter `http://<PS5 IP>:34189`, for example `http://192.168.7.9:34189`. Use the actual address; DHCP may change it.
 4. Enter the one-time code displayed by Vortex and a browser name. Codes expire after five minutes and can only be consumed once. Generate another code on the console for each additional browser.
 
-Sessions expire after one hour and are lost when Vortex closes or the listener restarts. Use **Web → Revoke …** on the console or **Settings → Revoke** in a paired browser to remove access. Logout revokes the current session. Console controls can enable read-only mode, select LAN/loopback binding and change the port. Configuration changes revoke all browser sessions. The browser cannot enable the service or change its listening configuration.
+Paired devices remain authorized for 30 days after meaningful authenticated activity and persist across Vortex/listener restarts. Background polling does not renew them. Revoke a device on the console or in browser Settings; logout revokes the current device. Port/binding/read-only changes retain authorization. See [persistent pairing and recovery](PHASE5_PAIRING_BRANDING.md).
 
 ## Browse and manage
 
@@ -24,7 +24,7 @@ The browser polls while visible, backs off on errors, and reconnects after a bri
 - Confirm Vortex remains open, Web reports running, both devices share a LAN, the IP/port are current and guest Wi-Fi/client isolation is disabled.
 - Select private LAN binding for another device; loopback permits only local connections. IPv6, public peers and hostnames are intentionally unsupported. Enter the numerical IPv4 address.
 - A port conflict requires a different port using console **Port +/−**, then the matching URL. No automatic port fallback changes your URL silently.
-- Re-pair after a console restart or configuration change. A consumed/expired code must be regenerated. Repeated attempts are rate-limited; wait a minute before retrying.
+- Reopening Vortex reconnects using the saved authorization. Re-pair only after expiry, revocation, lost browser credentials or security reset. A consumed/expired code must be regenerated. Repeated attempts are rate-limited; wait a minute before retrying.
 - Empty storage or unavailable releases must be resolved in the existing Vortex application. Browser error messages conceal provider URLs.
 - Do not forward the port or expose it through a tunnel. Plain HTTP requires a trusted local network; see [security](WEB_SECURITY.md).
 

@@ -9,11 +9,25 @@ import subprocess
 import signal
 import time
 import sys
+import shutil
 from overlay import ROOT, OUTPUT, configuration, prepare
 from web.integration.overlay import framework_overlay
 
 def run(argv, cwd=ROOT):
     subprocess.run([str(a) for a in argv], cwd=cwd, check=True)
+
+def clean_native_output(brand):
+    """Remove only the receipt-owned Vortex title output, never caches or other titles."""
+    dist = ROOT / 'ps5-react/dist'
+    app = dist / brand['titleId']
+    if app.is_symlink() or not dist.resolve().is_relative_to(ROOT.resolve()):
+        raise RuntimeError('Unsafe Vortex native output path')
+    if not app.exists(): return
+    receipt = dist / (brand['titleId'] + '.receipt.json')
+    owned = json.loads(receipt.read_text()) if receipt.is_file() else {}
+    if owned.get('title') != brand['titleId'] or owned.get('app') != 'vortex':
+        raise RuntimeError('Refusing to clear an unowned native output directory')
+    shutil.rmtree(app)
 
 def input_stamp():
     entries = []
@@ -77,6 +91,7 @@ def main():
     if llvm is None: raise RuntimeError('Install LLVM 18, including lld, and set LLVM to its bin directory')
     version = subprocess.check_output([str(llvm / 'llvm-config'), '--version'], text=True).strip()
     if not version.startswith('18.'): raise RuntimeError('The pinned PS5 toolchain requires LLVM 18')
+    clean_native_output(brand)
     run([sys.executable, 'tools/build_ps5.py', '--app-dir', app, '--llvm', llvm], framework)
     run([sys.executable, ROOT / 'custom/vortex/validate.py', '--built'])
     if args.no_package: return

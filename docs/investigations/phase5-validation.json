@@ -1,0 +1,223 @@
+{
+  "format": 1,
+  "sourceCommit": "6200929b0cfaec1472bcafca0608f0e2714e04d7",
+  "pr": 5,
+  "version": "1.2.0",
+  "upstreamCommit": "9f90d882771eb87f75579b10f951cc2dbe4daf2a",
+  "commercial": {
+    "total": 1148,
+    "ps5": 1009,
+    "ps4": 139
+  },
+  "homebrewFixture": 104,
+  "localTests": {
+    "vortexPython": 24,
+    "updaterJavaScript": 8,
+    "webJavaScript": 34,
+    "nativeCompatibilityPython": 9,
+    "applicationJavaScript": 17,
+    "historicalCatalogPython": 6,
+    "frameworkJavaScript": 136,
+    "browserChromiumFlows": 1,
+    "actualNativeQuickJSListenerRestart": "passed",
+    "independentAssetReencoding": "passed after clearing generator cache"
+  },
+  "branding": {
+    "format": 1,
+    "pillowVersion": "12.1.1",
+    "generators": {
+      "branding.py": "dabd24682dc5d8e83fe088d75bf828ec0791841c4a5f82ddfbe23007a2c0a305",
+      "bc7.py": "bab4be61e80d300a69b558acb35dad4021a1976be0dd473453723b9ddcedb304"
+    },
+    "masterSha256": "94fbe5ec14ba05e72b6cc4fe01aa25b686c858bd9e48ca64a1e632343f31d64d",
+    "files": {
+      "sce_sys/icon0.png": {
+        "sha256": "8682438b4c79e7cf701eb8fcf92a8c13ce88364a9983efe7fe85af91e825dcab",
+        "dimensions": [
+          512,
+          512
+        ]
+      },
+      "sce_sys/pic0.dds": {
+        "sha256": "a69ce40d275e79dabc0dcda5545c3c3774e00221add05864ffdf69e4a8069538",
+        "dimensions": [
+          3840,
+          2160
+        ]
+      },
+      "sce_sys/pic1.dds": {
+        "sha256": "a69ce40d275e79dabc0dcda5545c3c3774e00221add05864ffdf69e4a8069538",
+        "dimensions": [
+          3840,
+          2160
+        ]
+      }
+    }
+  },
+  "webManifest": {
+    "format": 1,
+    "extensionAbi": 1,
+    "nativeSha256": "051945ccd87c3c45caccccc913efffbec3b3ca2b57ad60356c517716d3a8ccc3",
+    "contracts": {
+      "app/ui/Header.jsx": "32861a9e360439fd97e2190f39d7e66cc47705bfa6fe4bc9bfe4c19581b69587",
+      "app/state/store.jsx": "a9bab8e98be982c1b386b4bc0ed78ecb46ee45f9d0bbddeebebde6373f99e6ef",
+      "app/browse/Spotlight.jsx": "c21361b3aab56325bff85743f0bc89369ac2064a4ec61372337dacb0525ccd7c",
+      "app/browse/TopCharts.jsx": "e55f8058d3e50712a776f68aff6a658592ba517c87bee9ac95f68e7e9fdb299f",
+      "ps5-react/native/shared/host_api.cpp": "446dbf7d5b5f7bfad17ab1e87c50b0c388c119df550a6d1dc1a8484fa7abe383",
+      "ps5-react/native/shared/host_api.hpp": "d7edc632d3584bca8271c73a4763e2de53d04028c23d47f29b8c093ea6df8b73",
+      "ps5-react/runtime/js/native.js": "aad6d1ba9ab961407fe518c52fdb14e71162656cd49ef49c91d0b13a7d732b94",
+      "ps5-react/docs/NATIVE-API.md": "5b8986a18eca4684d74a5fc745a927df90c52f821f818b609849217304d75678",
+      "app/state/downloads.js": "14ee510289c6137f2006a189e5547b97d91a52d2d485601e3de5fc01d9c7df7b",
+      "app/state/download-queue.js": "39b2eead7a386ac69bb5a0435634c92bca689de60732cb2ee6d201e12659ee8b",
+      "app/state/catalog.js": "951aab3b81abaa3cbf7ae392f76cb5b62e976642ad77aab67b47bcd04e58e9df",
+      "app/state/homebrew.js": "6bc341218cef8cff8e66a7fcf6e75877a51afb39d70f9c76964e2f23b23070a6",
+      "app/state/roots.js": "67a61708905a524d852c76e94daede80ee2fc2206ad1f4af9bfaece8bf9985e7",
+      "app/state/space.js": "855ee880905013ca11004db60b53df17aa485dc0cdc50d46656ac5ce82e0ef92",
+      "app/game/releases.js": "dc749a9888e646a243e4999e806ee49de9310756596cb5dddb09496615942aef",
+      "app/state/release-cache.js": "059d79099d2e12b6a8f5100a095597ee0fab93a5a8314d28abaf9ba73e112d09"
+    },
+    "assets": {
+      "index.html": "e80c74ad694d608d907dd4b55da90cd0973f7ae42709fa3f3821ab2674e8d565",
+      "app.js": "293a06c8e811b533303c15fbc362b08bf9cf098b86dc1e6d36923329fd7c5022",
+      "favicon.svg": "94fbe5ec14ba05e72b6cc4fe01aa25b686c858bd9e48ca64a1e632343f31d64d",
+      "styles.css": "b0db6b724bb56a56769c050a6e39308334d9ff3bf84c76992758c343b9ce9938"
+    }
+  },
+  "native": {
+    "titleId": "PPSA99189",
+    "contentId": "UP9000-PPSA99189_00-VORTEXPS50000000",
+    "contentVersion": "01.002.000",
+    "receiptFilesVerified": 4015,
+    "catalogResourcesVerified": 3920,
+    "nativeWebAbiPresent": true,
+    "pairingDataAbsentFromPackage": true,
+    "folderZipSha256": "723ce6cb4e3ca11ee171a8c61517d3cb109708c1370b72d2f3030e6e81b81071",
+    "folderZipBytes": 22846902,
+    "elfSelfMetadataAndZipVerified": true,
+    "previousLocalOutputStaleResourcesRemoved": 1909,
+    "catalogResourceParity": "exact selected staged paths and hashes, not a fixed file count"
+  },
+  "persistence": {
+    "path": "${FileSystem.dataDir}/vortex/web-devices.json",
+    "logicalPs5Path": "/download0/vortex/web-devices.json",
+    "plaintextBearerPersisted": false,
+    "inactivityDays": 30,
+    "activityCheckpointMinutes": 5,
+    "backgroundPollingRenews": false,
+    "closedListenerAuthorizationRejected": true,
+    "abruptShutdownActivityLossMinutesAtMost": 5
+  },
+  "blocked": {
+    "hardware": "Physical PS5 validation has not been performed"
+  },
+  "hardwareTested": false,
+  "releasePublished": false,
+  "prMerged": false,
+  "consoleAccessed": false,
+  "nativePreview": {
+    "transport": "actual desktop native listener and QuickJS application",
+    "hardwareTested": false,
+    "counts": {
+      "total": 1148,
+      "ps5": 1009,
+      "ps4": 139
+    },
+    "development": false,
+    "sharedFavorites": true,
+    "actualQueueRead": true,
+    "transfersTested": false,
+    "pairingRevocationAndShutdown": true,
+    "persistentPairingAcrossListenerRestart": true,
+    "angularVPackaged": true
+  },
+  "ciRecovery": {
+    "baselineFailure": "Vortex-only verifier relocated from upstream tools/ into protected custom/vortex/artifacts/; source contract unchanged",
+    "metadataFailure": "Both verifier checkouts fetch full history; real shallow-history regression reproduces exact missing app/version.js error",
+    "status": "Fresh image/update build and hosted/local independent verification passed; identity/Web/browser checks passed at build source; full framework passed with identical framework/application inputs; latest documentation-head full-suite result is authoritative at hosted.validationRun",
+    "investigation": "docs/investigations/phase5-ci-recovery.md"
+  },
+  "localNativeBuildSourceCommit": "3f50dd52082606cc5569ba39339ef7a1909d8283",
+  "hosted": {
+    "validationRun": "https://github.com/tattedbeardo89/vortex/pull/5/checks",
+    "frameworkSourceRun": "https://github.com/tattedbeardo89/vortex/actions/runs/39883783614",
+    "frameworkSourceCommit": "9f91a957fe8bcc7f4dff36fcec7201acb1df8de0",
+    "frameworkAndApplicationUnchangedByCiRepair": true,
+    "frameworkSourceJobs": {
+      "identity-and-tests": "success",
+      "native-build": "success",
+      "web-extension": "success",
+      "framework-tests": "success"
+    },
+    "browserEngines": [
+      "Chromium",
+      "Firefox",
+      "WebKit"
+    ],
+    "buildRun": "https://github.com/tattedbeardo89/vortex/actions/runs/39885361789",
+    "buildResult": "success",
+    "independentVerificationRun": "https://github.com/tattedbeardo89/vortex/actions/runs/39885836266",
+    "independentVerificationResult": "success",
+    "download": "https://github.com/tattedbeardo89/vortex/actions/runs/39885361789/artifacts/12471889874",
+    "outerArtifactSha256": "07a8be5c6895d3ed86ab3820453e420f94ba87dce5d62d92cdb32980681bc022",
+    "verificationReportDownload": "https://github.com/tattedbeardo89/vortex/actions/runs/39885836266/artifacts/12473005306",
+    "localDownloadAndIndependentVerification": "passed; identical to hosted report",
+    "sourceArchiveMatchesGitArchive": true,
+    "sourceArchiveSha256": "9646f14892f0df1fa88d2eeb2112a929965a75240ee6da3a0fe5e0f6c7d03445"
+  },
+  "independentArtifactVerification": {
+    "format": 1,
+    "sourceCommit": "6200929b0cfaec1472bcafca0608f0e2714e04d7",
+    "run": "https://github.com/tattedbeardo89/vortex/actions/runs/39885361789",
+    "image": {
+      "name": "Vortex.exfat",
+      "bytes": 473956352,
+      "sha256": "9581a2881c52d639df0dc1f7858cda0778567f30045ce9d96ac0e0ffa03eab2c"
+    },
+    "update": {
+      "name": "update.zip",
+      "bytes": 22894856,
+      "sha256": "37f8bd9280f23007bf5443f528cac113bcc509c14ae906767a4acb0aa2dc6d1a"
+    },
+    "receiptFilesVerifiedInsideExfat": 4015,
+    "catalogResourcesVerified": 3920,
+    "branding": {
+      "format": 1,
+      "pillowVersion": "12.1.1",
+      "generators": {
+        "branding.py": "dabd24682dc5d8e83fe088d75bf828ec0791841c4a5f82ddfbe23007a2c0a305",
+        "bc7.py": "bab4be61e80d300a69b558acb35dad4021a1976be0dd473453723b9ddcedb304"
+      },
+      "masterSha256": "94fbe5ec14ba05e72b6cc4fe01aa25b686c858bd9e48ca64a1e632343f31d64d",
+      "files": {
+        "sce_sys/icon0.png": {
+          "sha256": "8682438b4c79e7cf701eb8fcf92a8c13ce88364a9983efe7fe85af91e825dcab",
+          "dimensions": [
+            512,
+            512
+          ]
+        },
+        "sce_sys/pic0.dds": {
+          "sha256": "a69ce40d275e79dabc0dcda5545c3c3774e00221add05864ffdf69e4a8069538",
+          "dimensions": [
+            3840,
+            2160
+          ]
+        },
+        "sce_sys/pic1.dds": {
+          "sha256": "a69ce40d275e79dabc0dcda5545c3c3774e00221add05864ffdf69e4a8069538",
+          "dimensions": [
+            3840,
+            2160
+          ]
+        }
+      }
+    },
+    "identity": "PPSA99189",
+    "contentVersion": "01.002.000",
+    "webAssetsVerified": 4,
+    "nativeWebAbiPresent": true,
+    "pairingDataAbsentFromPackage": true,
+    "zipCrcAndImageEquality": true,
+    "hardwareTested": false
+  }
+}

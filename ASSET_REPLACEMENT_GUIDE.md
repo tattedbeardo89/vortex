@@ -1,16 +1,19 @@
-# Vortex artwork replacement guide
+# Vortex Angular V artwork
 
-No new binary artwork is generated or committed by this implementation. The main UI and splash use editable Vortex text. custom/vortex/assets/logo.svg is valid, editable SVG source; it is not rasterized by the customization scripts.
+The original editable master is [custom/vortex/branding/angular-v.svg](custom/vortex/branding/angular-v.svg). Edit its two indigo/violet polygons rather than editing upstream or generated binaries. It contains no font glyph, third-party artwork, enclosing rounded square or tagline.
 
-| Purpose | Required output filename | Dimensions and format | Default source |
-| --- | --- | --- | --- |
-| PS5 home-screen icon | icon0.png | 512 × 512 PNG | app/sce_sys/icon0.png |
-| Selected-app background | pic0.dds | 3840 × 2160, BC7 DX10 DDS | app/sce_sys/pic0.dds |
-| Launch background | pic1.dds | 3840 × 2160, BC7 DX10 DDS | app/sce_sys/pic1.dds |
-| Editable documentation/logo placeholder | logo.svg | 512 × 512 viewBox, SVG XML | custom/vortex/assets/logo.svg |
+`npm run prepare:vortex` deterministically generates:
 
-The three existing Overdrive binary home-screen assets are retained temporarily for build compatibility and must be replaced manually for a fully branded console appearance. They are separate from the Vortex title metadata and in-app text identity. Fonts, game covers, game screenshots, sounds and third-party service artwork remain their existing functional assets, not targets for a global rebrand.
+| Surface | Format | Generated path |
+| --- | --- | --- |
+| PS5 home icon | Transparent 512×512 RGBA PNG | `.vortex/vortex/sce_sys/icon0.png` |
+| Selected-app background | 3840×2160 BC7 UNORM DX10 DDS | `.vortex/vortex/sce_sys/pic0.dds` |
+| Launch background | 3840×2160 BC7 UNORM DX10 DDS | `.vortex/vortex/sce_sys/pic1.dds` |
+| Browser logo and favicon/tab icon | SVG master, transparent | `.vortex/vortex/vortex-web-assets/favicon.svg` |
+| Native logo and splash | Vector paths generated from the master | `.vortex/vortex/ui/vortex-emblem.js` |
 
-Create replacement artwork manually using tools of your choice, with rights to redistribute it. Place supplied files at the three default app/sce_sys paths, or at manually managed paths within this repository and update brand.json assets.icon, selectedBackground and launchBackground. The overlay copies those existing files to their required staged filenames; it never synthesizes images. Do not hand-edit generated `.vortex/vortex` files. No PNG/JPG/ICO/WEBP/Base64/rasterization helper is supplied.
+Pillow is pinned by the existing framework requirements. `custom/vortex/bc7.py` is an original deterministic mode-6 encoder for these flat opaque backgrounds; an independent Pillow BC7 decoder checks its output. Generated binaries are not committed. The build records master/file digests and dimensions in `VORTEX-BRANDING.json` and rejects mismatching packaged artwork. Both the Web and native application use the same source geometry.
 
-Run npm run prepare:vortex, npm run test:vortex and npm run build:app; the framework checks the icon and packages compatible existing assets. Then npm run build on a mount-capable Linux host. Verify the actual icon/backgrounds on the console before release. Binary screenshots are not part of this change's automated validation; use the preview's text UI snapshots. Background DDS compatibility must be inspected on hardware. Keep credits and legally required source/dependency notices unchanged when replacing artwork.
+Raw upstream app assets remain frozen as baseline evidence; the protected Vortex overlay always replaces them during staging. Full-snapshot synchronization preserves the master/generator and fails closed on incompatible theme/UI/Web hooks. Fonts, game artwork, sounds, provider identities and notices remain untouched.
+
+Run `npm run test:vortex`, `npm run test:web`, `npm run build:web`, and `npm run build:app`; then build `Vortex.exfat` and `update.zip` on a mount-capable Linux host. Verify the actual PS5 home-screen appearance and DDS compatibility on hardware before publication. See [pairing/branding policy](docs/PHASE5_PAIRING_BRANDING.md).

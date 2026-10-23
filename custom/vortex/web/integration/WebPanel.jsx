@@ -160,7 +160,7 @@ export function WebPanel() {
                   onPress: () => service.pairCode(),
                 })
               : text(
-                  "No active pairing code. Sessions expire after one hour and are cleared when Vortex closes.",
+                  "No active pairing code. Paired browsers remain authorized for 30 days after their last activity.",
                   22,
                   colors.muted,
                 ),
@@ -176,10 +176,11 @@ export function WebPanel() {
               ),
             ),
             text(
-              "Changing the port, binding or read-only mode restarts the listener and revokes browser sessions. HTTP is for trusted local networks only.",
+              "Restarting the listener keeps paired devices. Background polling does not extend authorization. HTTP is for trusted local networks only.",
               20,
               colors.muted,
             ),
+            info.error ? jsx(Button2, {label:"Reset all browser authorizations",onPress:()=>service.resetDevices()}) : null,
             jsx(Button2, { label: "Close", onPress: () => show(false) }),
           ],
         }),

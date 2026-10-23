@@ -1,3 +1,4 @@
+import { EMBLEM } from './vortex-emblem.js';
 // ../pub-game-store/native/ui/Splash.jsx
 // reconstructed from the esbuild bundle in eboot.bin
 
@@ -9,7 +10,7 @@ import { px } from './scale.js';
 
   var SIZE3 = 200 / 1.5;
   var UNIT = SIZE3 / 32;
-  var HUB = { x: 15.45, y: 16.55 };
+  var HUB = { x: 16, y: 16 };
   var needleBox = { position: "absolute", left: px((HUB.x - 16) * UNIT), top: px((HUB.y - 16) * UNIT) };
   var STEPS = [
     // Swings back like a revved engine settling...
@@ -52,7 +53,7 @@ import { px } from './scale.js';
             animate: { scale: leaving ? 0.9 : 1 },
             transition: { duration: 0.45, ease: "easeIn" },
             children: [
-              /* @__PURE__ */ (0, jsx)(Svg, { width: px(SIZE3), height: px(SIZE3), viewBox: "0 0 32 32", children: /* @__PURE__ */ (0, jsx)(Path, { d: "M26 12a11 11 0 1 1-8-7M18 5l7 3-6 4", fill: "none", stroke: colors.fg, strokeWidth: 4.5 }) }),
+              /* @__PURE__ */ (0, jsx)(Svg, { width: px(SIZE3), height: px(SIZE3), viewBox: "0 0 32 32", children: /* @__PURE__ */ (0, jsx)(Path, { ...EMBLEM[0] }) }),
               /* @__PURE__ */ (0, jsx)(
                 motion.View,
                 {
@@ -60,7 +61,7 @@ import { px } from './scale.js';
                   initial: { rotate: 0 },
                   animate: STEPS[Math.min(step, STEPS.length - 1)],
                   onAnimationComplete: () => setStep((s) => Math.min(s + 1, STEPS.length)),
-                  children: /* @__PURE__ */ (0, jsx)(Svg, { width: px(SIZE3), height: px(SIZE3), viewBox: `${HUB.x - 16} ${HUB.y - 16} 32 32`, children: /* @__PURE__ */ (0, jsx)(Path, { d: "M25 5 19 19 5 25 11 11Z", fill: colors.fg }) })
+                  children: /* @__PURE__ */ (0, jsx)(Svg, { width: px(SIZE3), height: px(SIZE3), viewBox: `${HUB.x - 16} ${HUB.y - 16} 32 32`, children: /* @__PURE__ */ (0, jsx)(Path, { ...EMBLEM[1] }) })
                 }
               )
             ]

@@ -1,6 +1,7 @@
 // Original Vortex Web security policy. No Node/browser dependencies in the PS5 runtime.
+import { sha256 } from "./sha256.js";
 export const API_VERSION = 1;
-export const SESSION_MS = 60 * 60 * 1000;
+export const SESSION_MS = 30 * 24 * 60 * 60 * 1000;
 const equal = (a, b) => {
   if (typeof a !== "string" || typeof b !== "string" || a.length !== b.length)
     return false;
@@ -27,10 +28,105 @@ export class WebError extends Error {
     this.status = status;
   }
 }
-export function createAuth({ random, now = Date.now, port = () => 34189 }) {
+export const ACTIVITY_WRITE_MS = 5 * 60 * 1000;
+export function createAuth({
+  random,
+  now: wallClock = Date.now,
+  port = () => 34189,
+  storage = null,
+}) {
   const sessions = new Map(),
     attempts = new Map(),
     requests = new Map();
+  let highWater = 0,
+    savedAt = 0,
+    dirty = false,
+    active = true;
+  const now = () => {
+    const time = wallClock();
+    if (
+      !Number.isSafeInteger(time) ||
+      time < 0 ||
+      time > 4102444800000 ||
+      time + 300000 < highWater
+    )
+      throw new WebError(
+        503,
+        "Console clock is invalid or moved backwards; correct it before using Web",
+      );
+    return (highWater = Math.max(highWater, time));
+  };
+  const save = () => {
+    const checkpoint = now();
+    try {
+      storage?.save({
+        format: 1,
+        highWater: checkpoint,
+        devices: [...sessions].map(
+          ([verifier, { id, name, created, lastActivity }]) => ({
+            verifier,
+            id,
+            name,
+            created,
+            lastActivity,
+          }),
+        ),
+      });
+    } catch {
+      throw new WebError(
+        503,
+        "Device authorization could not be saved; retry after checking console storage",
+      );
+    }
+    savedAt = checkpoint;
+    dirty = false;
+  };
+  if (storage) {
+    const value = storage.load();
+    if (value !== null) {
+      if (
+        value.format !== 1 ||
+        !Number.isSafeInteger(value.highWater) ||
+        value.highWater < 0 ||
+        !Array.isArray(value.devices) ||
+        value.devices.length > 16
+      )
+        throw new Error(
+          "Invalid saved device authorization; reset Web security data",
+        );
+      highWater = value.highWater;
+      now();
+      const ids = new Set();
+      for (const row of value.devices) {
+        const { verifier, id, name, created, lastActivity } = row;
+        if (
+          !/^[a-f0-9]{64}$/.test(verifier) ||
+          !/^[a-f0-9]{24}$/.test(id) ||
+          ids.has(id) ||
+          sessions.has(verifier) ||
+          typeof name !== "string" ||
+          name.length > 60 ||
+          !Number.isSafeInteger(created) ||
+          created < 0 ||
+          !Number.isSafeInteger(lastActivity) ||
+          lastActivity < created ||
+          lastActivity > highWater
+        )
+          throw new Error(
+            "Invalid saved device authorization; reset Web security data",
+          );
+        ids.add(id);
+        sessions.set(verifier, {
+          id,
+          name,
+          created,
+          lastActivity,
+          expires: lastActivity + SESSION_MS,
+        });
+      }
+      savedAt = highWater;
+    }
+  }
   let pairing = null,
     globalAttempts = [],
     globalRequests = [];
@@ -54,6 +150,7 @@ export function createAuth({ random, now = Date.now, port = () => 34189 }) {
         if (!values.some((t) => t > now() - 60000)) map.delete(ip);
   }
   function validateRequest(req) {
+    if (!active) fail(503, "Web listener restarted; reconnect");
     if (!privateIPv4(req.peer) || !privateIPv4(req.local))
       fail(403, "Local-network access only");
     const host = req.headers.host;
@@ -112,54 +209,106 @@ export function createAuth({ random, now = Date.now, port = () => 34189 }) {
     if (sessions.size >= 16)
       fail(409, "Revoke a paired device before adding another");
     const secret = token(32),
-      csrf = token(32),
+      csrf = sha256(secret + ":csrf"),
       id = token(12);
+    const timestamp = now();
     const session = {
       id,
-      csrf,
-      created: now(),
-      expires: now() + SESSION_MS,
+      created: timestamp,
+      lastActivity: timestamp,
+      expires: timestamp + SESSION_MS,
       name: typeof body.name === "string" ? body.name.slice(0, 60) : "Browser",
     };
-    sessions.set(secret, session);
+    const verifier = sha256(secret);
+    sessions.set(verifier, session);
+    try {
+      save();
+    } catch (error) {
+      sessions.delete(verifier);
+      throw error;
+    }
     pairing = null;
     return {
-      session,
-      cookie: `vortex_session=${secret}; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600`,
+      session: { ...session, csrf },
+      cookie: cookie(secret),
     };
   }
   function authenticate(req) {
+    if (!active) fail(503, "Web listener restarted; reconnect");
     const cookies = (req.headers.cookie || "")
       .split(";")
       .map((x) => x.trim())
       .filter((x) => x.startsWith("vortex_session="));
     if (cookies.length !== 1) fail(401, "Pair this browser on the PS5");
     const secret = cookies[0].slice("vortex_session=".length);
-    const session = sessions.get(secret);
+    if (!/^[a-f0-9]{64}$/.test(secret))
+      fail(401, "Session expired or revoked; pair again");
+    const session = sessions.get(sha256(secret));
     if (!session || session.expires <= now())
       fail(401, "Session expired or revoked; pair again");
     if (
       req.method !== "GET" &&
-      !equal(req.headers["x-vortex-csrf"], session.csrf)
+      !equal(req.headers["x-vortex-csrf"], sha256(secret + ":csrf"))
     )
       fail(403, "CSRF token required");
-    return session;
+    return { ...session, csrf: sha256(secret + ":csrf") };
   }
   function devices() {
     prune();
-    return [...sessions.values()].map(({ id, name, created, expires }) => ({
-      id,
-      name,
-      created,
-      expires,
-    }));
+    return [...sessions.values()].map(
+      ({ id, name, created, lastActivity, expires }) => ({
+        id,
+        name,
+        created,
+        lastActivity,
+        expires,
+      }),
+    );
+  }
+  function cookie(secret) {
+    return `vortex_session=${secret}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${SESSION_MS / 1000}`;
+  }
+  function touch(id) {
+    if (!active) fail(503, "Web listener restarted; reconnect");
+    const session = [...sessions.values()].find((s) => s.id === id);
+    if (!session || session.expires <= now())
+      fail(401, "Session expired or revoked; pair again");
+    const previous = { ...session },
+      wasDirty = dirty;
+    session.lastActivity = now();
+    session.expires = session.lastActivity + SESSION_MS;
+    dirty = true;
+    try {
+      if (now() - savedAt >= ACTIVITY_WRITE_MS) save();
+    } catch (error) {
+      Object.assign(session, previous);
+      dirty = wasDirty;
+      throw error;
+    }
+  }
+  function renewal(req) {
+    const match = /(?:^|;\s*)vortex_session=([a-f0-9]{64})(?:;|$)/.exec(
+      req.headers.cookie || "",
+    );
+    return match ? cookie(match[1]) : "";
+  }
+  function flush() {
+    // Persist the clock high-water mark on graceful shutdown even without a renewal.
+    if (dirty || sessions.size) save();
+  }
+  function close() {
+    active = false;
+    pairing = null;
   }
   function revoke(id) {
     for (const [secret, s] of sessions)
       if (s.id === id) sessions.delete(secret);
+    dirty = true;
+    save();
   }
   function clear() {
     sessions.clear();
+    save();
     pairing = null;
     attempts.clear();
     requests.clear();
@@ -167,6 +316,10 @@ export function createAuth({ random, now = Date.now, port = () => 34189 }) {
     globalRequests = [];
   }
   return {
+    close,
+    touch,
+    renewal,
+    flush,
     validateRequest,
     newCode,
     pair,

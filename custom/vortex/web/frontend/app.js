@@ -48,7 +48,8 @@ const picture = (url, alt, className = "") => {
   return img;
 };
 function notice(text) {
-  $("notice").textContent = text;
+  $("notice-message").textContent = text;
+  $("reconnect").hidden = text !== OFFLINE;
   $("notice").hidden = !text;
 }
 function connection(connected, text) {
@@ -56,6 +57,7 @@ function connection(connected, text) {
   $("connection").textContent = text;
 }
 function requirePair(message = "") {
+  notice("");
   csrf = "";
   facets = null;
   sequence++;
@@ -63,6 +65,13 @@ function requirePair(message = "") {
   connection(false, "Pairing required");
   $("pair-error").textContent = message;
   if (!pairDialog.open) pairDialog.showModal();
+}
+const OFFLINE = "Vortex is offline. Reopen Vortex on your PS5 to reconnect.";
+function offline() {
+  connection(false, OFFLINE);
+  notice(OFFLINE);
+  if (!csrf && !pairDialog.open)
+    main.replaceChildren(el("div", { class: "empty", text: OFFLINE }));
 }
 async function api(path, body) {
   const controller = new AbortController(),
@@ -79,9 +88,17 @@ async function api(path, body) {
           : { "Content-Type": "application/json", "X-Vortex-CSRF": csrf },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
+    if (response.status >= 500) {
+      offline();
+      throw new Error(OFFLINE);
+    }
     const result = await response.json();
     if (!response.ok) {
-      if (response.status === 401 && !path.startsWith("auth/pair"))
+      if (
+        response.status === 401 &&
+        result.code === "PAIRING_REQUIRED" &&
+        !path.startsWith("auth/pair")
+      )
         requirePair(result.error);
       throw new Error(result.error || `HTTP ${response.status}`);
     }
@@ -90,12 +107,13 @@ async function api(path, body) {
       readOnly ? "Connected · read-only" : "Connected to Vortex",
     );
     pollDelay = 2500;
+    if ($("notice-message").textContent === OFFLINE) notice("");
     return result;
   } catch (error) {
-    if (error.name === "AbortError")
-      throw new Error(
-        "Vortex did not answer. Keep the app open and check your network.",
-      );
+    if (error.name === "AbortError" || error instanceof TypeError) {
+      offline();
+      throw new Error(OFFLINE);
+    }
     throw error;
   } finally {
     clearTimeout(timeout);
@@ -710,8 +728,15 @@ async function details(id) {
 }
 async function poll() {
   clearTimeout(pollTimer);
-  if (csrf && !document.hidden)
+  if (!pairDialog.open && !document.hidden)
     try {
+      if (!csrf) {
+        const session = await api("auth/session");
+        csrf = session.csrf;
+        readOnly = session.readOnly;
+        notice("");
+        await loadPage();
+      }
       currentDownloads = await api("downloads");
       $("queue-count").textContent =
         currentDownloads.items.filter((j) =>
@@ -763,9 +788,9 @@ async function poll() {
         );
       }
     } catch (error) {
-      connection(false, "Disconnected · retrying");
+      if (!pairDialog.open) offline();
       pollDelay = Math.min(30000, pollDelay * 2);
-      notice(error.message);
+      if (pairDialog.open) notice(error.message);
     }
   pollTimer = setTimeout(poll, document.hidden ? 10000 : pollDelay);
 }
@@ -801,8 +826,10 @@ $("search-form").addEventListener("submit", (event) => {
 $("sign-out").addEventListener("click", async () => {
   try {
     await api("auth/logout", {});
-  } catch {}
-  requirePair();
+    requirePair();
+  } catch (error) {
+    notice(error.message);
+  }
 });
 $("menu-toggle").addEventListener("click", () => {
   const open = $("navigation").classList.toggle("open");
@@ -832,8 +859,36 @@ try {
   await loadPage();
   void poll();
 } catch (error) {
-  requirePair(error.message);
+  if (!pairDialog.open) offline();
+  void poll();
 }
+
+let lastActivitySent = 0,
+  activityPending = false;
+async function userActivity(event) {
+  if (
+    activityPending ||
+    !event.isTrusted ||
+    !csrf ||
+    document.hidden ||
+    Date.now() - lastActivitySent < 300000
+  )
+    return;
+  activityPending = true;
+  try {
+    await api("auth/activity", {});
+    lastActivitySent = Date.now();
+  } catch {
+  } finally {
+    activityPending = false;
+  }
+}
+document.addEventListener("pointerdown", userActivity);
+document.addEventListener("keydown", userActivity);
+$("reconnect").addEventListener("click", () => {
+  pollDelay = 2500;
+  void poll();
+});
 
 document.querySelector(".skip").addEventListener("click", (event) => {
   event.preventDefault();

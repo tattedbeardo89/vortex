@@ -1,0 +1,86 @@
+name: Verify Vortex artifacts
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Completed Vortex validation or Build Vortex run ID
+        type: string
+        required: true
+      artifact_name:
+        description: Artifact containing Vortex.exfat and update.zip
+        type: string
+        default: Vortex-native-validation
+  workflow_call:
+    inputs:
+      run_id:
+        type: string
+        required: true
+      artifact_name:
+        type: string
+        required: false
+        default: Vortex-native-validation
+permissions:
+  contents: read
+  actions: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Resolve successful build provenance
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ inputs.run_id }}
+        run: |
+          set -euo pipefail
+          [[ "$RUN_ID" =~ ^[0-9]+$ ]]
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID" > "$RUNNER_TEMP/source-run.json"
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          run=json.loads((Path(os.environ['RUNNER_TEMP'])/'source-run.json').read_text())
+          assert run['conclusion']=='success', 'Only successful completed builds can be verified'
+          assert run['name'] in ('Vortex validation','Build Vortex'), 'Unexpected source workflow'
+          with open(os.environ['GITHUB_OUTPUT'],'a') as output: output.write('sha='+run['head_sha']+'\n')
+          PY
+      - name: Preserve verifier before checking out exact build source
+        run: cp custom/vortex/artifacts/verify.py "$RUNNER_TEMP/verify-vortex-artifacts.py"
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ steps.source.outputs.sha }}
+          clean: true
+      - name: Install pinned artwork dependency and reconstruct selected staged source
+        run: |
+          set -euo pipefail
+          python3 -m pip install -r ps5-react/requirements.txt
+          npm ci --ignore-scripts --prefix ps5-react
+          npm run build:web
+          mkdir -p custom/vortex/artifacts
+          cp "$RUNNER_TEMP/verify-vortex-artifacts.py" custom/vortex/artifacts/verify.py
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.run_id }}
+          name: ${{ inputs.artifact_name }}
+          path: artifact
+      - name: Independently inspect exFAT and update contents without mounting or modifying
+        env:
+          SOURCE_RUN: ${{ inputs.run_id }}
+          SOURCE_SHA: ${{ steps.source.outputs.sha }}
+        run: python3 custom/vortex/artifacts/verify.py artifact "$SOURCE_RUN" "$SOURCE_SHA"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Vortex-independent-verification
+          path: artifact/independent-verification.json
+          if-no-files-found: error
