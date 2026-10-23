@@ -209,3 +209,35 @@ test("session bound is retained across persistent reconstruction", () => {
   a = f.start();
   assert.throws(() => f.pair(a), /Revoke/);
 });
+
+test("failed durable renewal does not extend a rejected activity request", () => {
+  const f = fixture(),
+    a = f.start(),
+    p = f.pair(a),
+    expiry = a.devices()[0].expires;
+  f.advance(ACTIVITY_WRITE_MS + 1);
+  f.fail();
+  assert.throws(() => a.touch(p.id), /could not be saved/);
+  assert.equal(a.devices()[0].expires, expiry);
+  assert.equal(f.start().devices()[0].expires, expiry);
+});
+test("saved timestamps are validated and forward clock jumps expire conservatively", () => {
+  for (const change of [
+    (r) => (r.devices[0].lastActivity = -1),
+    (r) => (r.devices[0].created = null),
+    (r) => (r.devices[0].lastActivity = r.highWater + 1),
+  ]) {
+    const f = fixture(),
+      a = f.start();
+    f.pair(a);
+    const row = JSON.parse(f.files.get("/data/vortex/web-devices.json"));
+    change(row);
+    f.files.set("/data/vortex/web-devices.json", JSON.stringify(row));
+    assert.throws(f.start, /Invalid saved/);
+  }
+  const f = fixture(),
+    a = f.start(),
+    p = f.pair(a);
+  f.advance(SESSION_MS);
+  assert.throws(() => a.authenticate(req(p.cookie)), /expired/);
+});
