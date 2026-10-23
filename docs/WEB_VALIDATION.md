@@ -2,7 +2,7 @@
 
 ## Phase 5 addendum
 
-Current Angular V/persistent-pairing results and delivery blockers are in [PHASE5_PAIRING_BRANDING.md](PHASE5_PAIRING_BRANDING.md) and [phase5-validation.json](investigations/phase5-validation.json). The prior successful hosted builds below predate Phase 5 and must not be used as its artifacts.
+Current Angular V/persistent-pairing results, verified fresh downloads and remaining hardware limits are in [PHASE5_PAIRING_BRANDING.md](PHASE5_PAIRING_BRANDING.md) and [phase5-validation.json](investigations/phase5-validation.json). The prior successful hosted builds below predate Phase 5 and must not be used as its artifacts.
 
 ## Reconciled with merged PR #3
 

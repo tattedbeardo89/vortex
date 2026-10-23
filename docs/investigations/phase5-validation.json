@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "sourceCommit": "3f50dd52082606cc5569ba39339ef7a1909d8283",
+  "sourceCommit": "6200929b0cfaec1472bcafca0608f0e2714e04d7",
   "pr": 5,
   "version": "1.2.0",
   "upstreamCommit": "9f90d882771eb87f75579b10f951cc2dbe4daf2a",
@@ -11,7 +11,7 @@
   },
   "homebrewFixture": 104,
   "localTests": {
-    "vortexPython": 23,
+    "vortexPython": 24,
     "updaterJavaScript": 8,
     "webJavaScript": 34,
     "nativeCompatibilityPython": 9,
@@ -133,7 +133,91 @@
   "ciRecovery": {
     "baselineFailure": "Vortex-only verifier relocated from upstream tools/ into protected custom/vortex/artifacts/; source contract unchanged",
     "metadataFailure": "Both verifier checkouts fetch full history; real shallow-history regression reproduces exact missing app/version.js error",
-    "status": "Fresh full-suite/image/independent verification pending for repair commit",
+    "status": "Fresh image/update build and hosted/local independent verification passed; identity/Web/browser checks passed at build source; full framework passed with identical framework/application inputs; latest documentation-head full-suite result is authoritative at hosted.validationRun",
     "investigation": "docs/investigations/phase5-ci-recovery.md"
+  },
+  "localNativeBuildSourceCommit": "3f50dd52082606cc5569ba39339ef7a1909d8283",
+  "hosted": {
+    "validationRun": "https://github.com/tattedbeardo89/vortex/pull/5/checks",
+    "frameworkSourceRun": "https://github.com/tattedbeardo89/vortex/actions/runs/39883783614",
+    "frameworkSourceCommit": "9f91a957fe8bcc7f4dff36fcec7201acb1df8de0",
+    "frameworkAndApplicationUnchangedByCiRepair": true,
+    "frameworkSourceJobs": {
+      "identity-and-tests": "success",
+      "native-build": "success",
+      "web-extension": "success",
+      "framework-tests": "success"
+    },
+    "browserEngines": [
+      "Chromium",
+      "Firefox",
+      "WebKit"
+    ],
+    "buildRun": "https://github.com/tattedbeardo89/vortex/actions/runs/39885361789",
+    "buildResult": "success",
+    "independentVerificationRun": "https://github.com/tattedbeardo89/vortex/actions/runs/39885836266",
+    "independentVerificationResult": "success",
+    "download": "https://github.com/tattedbeardo89/vortex/actions/runs/39885361789/artifacts/12471889874",
+    "outerArtifactSha256": "07a8be5c6895d3ed86ab3820453e420f94ba87dce5d62d92cdb32980681bc022",
+    "verificationReportDownload": "https://github.com/tattedbeardo89/vortex/actions/runs/39885836266/artifacts/12473005306",
+    "localDownloadAndIndependentVerification": "passed; identical to hosted report",
+    "sourceArchiveMatchesGitArchive": true,
+    "sourceArchiveSha256": "9646f14892f0df1fa88d2eeb2112a929965a75240ee6da3a0fe5e0f6c7d03445"
+  },
+  "independentArtifactVerification": {
+    "format": 1,
+    "sourceCommit": "6200929b0cfaec1472bcafca0608f0e2714e04d7",
+    "run": "https://github.com/tattedbeardo89/vortex/actions/runs/39885361789",
+    "image": {
+      "name": "Vortex.exfat",
+      "bytes": 473956352,
+      "sha256": "9581a2881c52d639df0dc1f7858cda0778567f30045ce9d96ac0e0ffa03eab2c"
+    },
+    "update": {
+      "name": "update.zip",
+      "bytes": 22894856,
+      "sha256": "37f8bd9280f23007bf5443f528cac113bcc509c14ae906767a4acb0aa2dc6d1a"
+    },
+    "receiptFilesVerifiedInsideExfat": 4015,
+    "catalogResourcesVerified": 3920,
+    "branding": {
+      "format": 1,
+      "pillowVersion": "12.1.1",
+      "generators": {
+        "branding.py": "dabd24682dc5d8e83fe088d75bf828ec0791841c4a5f82ddfbe23007a2c0a305",
+        "bc7.py": "bab4be61e80d300a69b558acb35dad4021a1976be0dd473453723b9ddcedb304"
+      },
+      "masterSha256": "94fbe5ec14ba05e72b6cc4fe01aa25b686c858bd9e48ca64a1e632343f31d64d",
+      "files": {
+        "sce_sys/icon0.png": {
+          "sha256": "8682438b4c79e7cf701eb8fcf92a8c13ce88364a9983efe7fe85af91e825dcab",
+          "dimensions": [
+            512,
+            512
+          ]
+        },
+        "sce_sys/pic0.dds": {
+          "sha256": "a69ce40d275e79dabc0dcda5545c3c3774e00221add05864ffdf69e4a8069538",
+          "dimensions": [
+            3840,
+            2160
+          ]
+        },
+        "sce_sys/pic1.dds": {
+          "sha256": "a69ce40d275e79dabc0dcda5545c3c3774e00221add05864ffdf69e4a8069538",
+          "dimensions": [
+            3840,
+            2160
+          ]
+        }
+      }
+    },
+    "identity": "PPSA99189",
+    "contentVersion": "01.002.000",
+    "webAssetsVerified": 4,
+    "nativeWebAbiPresent": true,
+    "pairingDataAbsentFromPackage": true,
+    "zipCrcAndImageEquality": true,
+    "hardwareTested": false
   }
 }
