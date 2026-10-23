@@ -59,6 +59,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Install pinned artwork generator dependency
+        run: python3 -m pip install -r ps5-react/requirements.txt
       - run: npm ci --ignore-scripts --prefix ps5-react
       - run: npm run test:vortex
       - name: Fetch pinned upstream catalog comparison snapshot
@@ -89,6 +91,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Install pinned artwork generator dependency
+        run: python3 -m pip install -r ps5-react/requirements.txt
       - run: npm ci --ignore-scripts --prefix ps5-react
       - run: npm ci --ignore-scripts --prefix custom/vortex/web
       - run: npm run test:web

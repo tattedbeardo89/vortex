@@ -30,7 +30,9 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install locked test dependencies
-        run: npm ci --ignore-scripts --prefix ps5-react
+        run: |
+          python3 -m pip install -r ps5-react/requirements.txt
+          npm ci --ignore-scripts --prefix ps5-react
       - name: Merge upstream, validate and open or update a draft PR
         id: integrate
         env:
